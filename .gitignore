@@ -1,0 +1,22 @@
+# Dependensi dan hasil build (bila nanti ada tooling Node)
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# Variabel lingkungan dan kredensial — JANGAN pernah commit yang asli
+.env
+.env.local
+.env.*.local
+
+# Berkas sistem dan editor
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Arsip dan berkas sementara
+*.zip
+*.tmp
