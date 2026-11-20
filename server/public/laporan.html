@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laporan Kehadiran — GENSA</title>
+  <link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#8A5A33">
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #533f30;
+      background: #F6F1E9;
+      line-height: 1.5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body { margin: 0; }
+
+    main {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    h1, h2 { color: #8A5A33; }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 1.2rem;
+    }
+
+    .brand {
+      margin: 0 0 4px;
+      color: #5F7A57;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+
+    .card {
+      padding: 20px;
+      border: 1px solid #ddd0bf;
+      border-radius: 14px;
+      background: #fffdf9;
+    }
+
+    .dates {
+      display: grid;
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      font-weight: 600;
+    }
+
+    input[type="date"] {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      padding: 9px 12px;
+      border: 1px solid #ad9982;
+      border-radius: 8px;
+      background: #fffdf9;
+      color: #533f30;
+      font: inherit;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0;
+      min-height: 44px;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      accent-color: #5F7A57;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .presets { margin-top: 16px; }
+
+    button {
+      min-height: 44px;
+      padding: 10px 16px;
+      border: 1px solid #8A5A33;
+      border-radius: 8px;
+      background: #fffdf9;
+      color: #8A5A33;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .primary {
+      border-color: #5F7A57;
+      background: #5F7A57;
+      color: #fff;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    :focus-visible {
+      outline: 3px solid #7C9A6E;
+      outline-offset: 3px;
+    }
+
+    #pesan {
+      min-height: 1.5em;
+      margin: 16px 0;
+    }
+
+    #pesan[data-error="true"] { color: #8A3F2D; }
+
+    #info { margin: 0 0 16px; }
+
+    section + section { margin-top: 24px; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #ddd0bf;
+      border-radius: 10px;
+      background: #fffdf9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .95rem;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e7dccd;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #eee6d9;
+      color: #8A5A33;
+      white-space: nowrap;
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .number { text-align: right; }
+
+    [hidden] { display: none !important; }
+
+    @media (min-width: 600px) {
+      main { padding: 40px 24px 64px; }
+      .dates { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">GENSA</p>
+    <h1>Laporan Kehadiran</h1>
+
+    <form id="form-laporan" class="card">
+      <div class="dates">
+        <label class="field" for="dari">
+          Tanggal awal
+          <input id="dari" name="dari" type="date" required>
+        </label>
+
+        <label class="field" for="sampai">
+          Tanggal akhir
+          <input id="sampai" name="sampai" type="date" required>
+        </label>
+      </div>
+
+      <div class="buttons presets">
+        <button id="minggu-ini" type="button">Minggu ini</button>
+        <button id="bulan-ini" type="button">Bulan ini</button>
+      </div>
+
+      <label class="check" for="rincian">
+        <input id="rincian" name="rincian" type="checkbox">
+        Tampilkan rincian per generus
+      </label>
+
+      <div class="buttons">
+        <button class="primary" type="submit">Tampilkan</button>
+        <button id="unduh" type="button">Unduh Word</button>
+      </div>
+    </form>
+
+    <p id="pesan" role="status" aria-live="polite"></p>
+
+    <div id="hasil" hidden>
+      <p id="info"></p>
+
+      <section aria-labelledby="judul-rekap">
+        <h2 id="judul-rekap">Rekap Kehadiran</h2>
+        <div
+          id="rekap"
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-labelledby="judul-rekap"
+        ></div>
+      </section>
+
+      <section id="bagian-rincian" aria-labelledby="judul-rincian" hidden>
+        <h2 id="judul-rincian">Rincian per Generus</h2>
+        <div
+          id="tabel-rincian"
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-labelledby="judul-rincian"
+        ></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    'use strict';
+
+    const form = document.getElementById('form-laporan');
+    const dari = document.getElementById('dari');
+    const sampai = document.getElementById('sampai');
+    const rincian = document.getElementById('rincian');
+    const pesan = document.getElementById('pesan');
+    const hasil = document.getElementById('hasil');
+    const info = document.getElementById('info');
+    const rekap = document.getElementById('rekap');
+    const bagianRincian = document.getElementById('bagian-rincian');
+    const tabelRincian = document.getElementById('tabel-rincian');
+
+    const labelJenjang = {
+      caberawit: 'Caberawit',
+      pra_remaja: 'Pra Remaja',
+      remaja: 'Remaja',
+      usia_nikah: 'Usia Nikah',
+    };
+
+    function tanggalInput(date) {
+      return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0'),
+      ].join('-');
+    }
+
+    function tanggalTampil(value) {
+      const [tahun, bulan, hari] = value.split('-');
+      return `${hari}/${bulan}/${tahun}`;
+    }
+
+    function persen(value) {
+      return value === null
+        ? '-'
+        : value.toLocaleString('id-ID', {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          });
+    }
+
+    function beriPesan(text, error = false) {
+      pesan.textContent = text;
+      pesan.dataset.error = String(error);
+    }
+
+    function parameter() {
+      sampai.setCustomValidity('');
+
+      if (!form.reportValidity()) {
+        return null;
+      }
+
+      if (dari.value > sampai.value) {
+        const message = 'Tanggal awal tidak boleh setelah tanggal akhir.';
+        sampai.setCustomValidity(message);
+        sampai.reportValidity();
+        beriPesan(message, true);
+        return null;
+      }
+
+      return new URLSearchParams({
+        dari: dari.value,
+        sampai: sampai.value,
+        rincian: rincian.checked ? '1' : '0',
+      });
+    }
+
+    function buatTabel(container, columns, rows) {
+      const table = document.createElement('table');
+      const head = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+
+      for (const column of columns) {
+        const cell = document.createElement('th');
+        cell.scope = 'col';
+        cell.textContent = column.label;
+        if (column.number) cell.className = 'number';
+        headerRow.append(cell);
+      }
+
+      head.append(headerRow);
+      table.append(head);
+
+      const body = document.createElement('tbody');
+
+      for (const row of rows) {
+        const tr = document.createElement('tr');
+
+        for (const column of columns) {
+          const cell = document.createElement('td');
+          const value = column.format
+            ? column.format(row[column.key])
+            : row[column.key];
+
+          cell.textContent = value == null ? '-' : String(value);
+          if (column.number) cell.className = 'number';
+          tr.append(cell);
+        }
+
+        body.append(tr);
+      }
+
+      if (rows.length === 0) {
+        const tr = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = columns.length;
+        cell.textContent = 'Belum ada data untuk ditampilkan.';
+        tr.append(cell);
+        body.append(tr);
+      }
+
+      table.append(body);
+      container.replaceChildren(table);
+    }
+
+    function tampilkanHasil(data) {
+      info.textContent =
+        `Periode: ${tanggalTampil(data.periode.dari)} – ` +
+        `${tanggalTampil(data.periode.sampai)} · Wilayah: ${data.wilayah}`;
+
+      buatTabel(rekap, [
+        { key: 'kelompok', label: 'Kelompok' },
+        { key: 'desa', label: 'Desa' },
+        { key: 'generus', label: 'Generus', number: true },
+        { key: 'pertemuan', label: 'Pertemuan', number: true },
+        {
+          key: 'rata_persen',
+          label: 'Rata-rata % Hadir',
+          number: true,
+          format: persen,
+        },
+      ], data.rekap);
+
+      const adaRincian = Array.isArray(data.rincian);
+      bagianRincian.hidden = !adaRincian;
+      tabelRincian.replaceChildren();
+
+      if (adaRincian) {
+        buatTabel(tabelRincian, [
+          { key: 'nama', label: 'Nama' },
+          { key: 'kelompok', label: 'Kelompok' },
+          { key: 'kelas_sekolah', label: 'Kelas' },
+          {
+            key: 'jenjang',
+            label: 'Jenjang',
+            format: (value) => labelJenjang[value] || value,
+          },
+          { key: 'hadir', label: 'Hadir', number: true },
+          { key: 'izin', label: 'Izin', number: true },
+          { key: 'alfa', label: 'Alfa', number: true },
+          { key: 'wajib', label: 'Wajib', number: true },
+          {
+            key: 'persen',
+            label: '% Hadir',
+            number: true,
+            format: persen,
+          },
+        ], data.rincian);
+      }
+
+      hasil.hidden = false;
+    }
+
+    async function muatLaporan() {
+      const params = parameter();
+      if (!params) return;
+
+      const buttons = form.querySelectorAll('button');
+      for (const button of buttons) button.disabled = true;
+
+      hasil.hidden = true;
+      hasil.setAttribute('aria-busy', 'true');
+      beriPesan('Memuat laporan…');
+
+      try {
+        const response = await fetch(`/api/laporan?${params.toString()}`, {
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        });
+
+        if (response.status === 401) {
+          window.location.replace('/login.html');
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            typeof data.error === 'string'
+              ? data.error
+              : 'Laporan belum dapat dimuat. Silakan coba lagi.',
+          );
+        }
+
+        tampilkanHasil(data);
+        beriPesan('Laporan berhasil ditampilkan.');
+      } catch (error) {
+        beriPesan(
+          error instanceof Error
+            ? error.message
+            : 'Laporan belum dapat dimuat. Silakan coba lagi.',
+          true,
+        );
+      } finally {
+        hasil.removeAttribute('aria-busy');
+        for (const button of buttons) button.disabled = false;
+      }
+    }
+
+    function isiTanggal(awal, akhir) {
+      dari.value = tanggalInput(awal);
+      sampai.value = tanggalInput(akhir);
+      sampai.setCustomValidity('');
+      beriPesan('');
+    }
+
+    dari.addEventListener('input', () => sampai.setCustomValidity(''));
+    sampai.addEventListener('input', () => sampai.setCustomValidity(''));
+
+    document.getElementById('minggu-ini').addEventListener('click', () => {
+      const senin = new Date();
+      const jarakSenin = (senin.getDay() + 6) % 7;
+      senin.setDate(senin.getDate() - jarakSenin);
+
+      const minggu = new Date(senin);
+      minggu.setDate(minggu.getDate() + 6);
+      isiTanggal(senin, minggu);
+    });
+
+    document.getElementById('bulan-ini').addEventListener('click', () => {
+      const hariIni = new Date();
+      const awalBulan = new Date(hariIni.getFullYear(), hariIni.getMonth(), 1);
+      isiTanggal(awalBulan, hariIni);
+    });
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      muatLaporan();
+    });
+
+    document.getElementById('unduh').addEventListener('click', () => {
+      const params = parameter();
+      if (!params) return;
+
+      window.location.assign(`/api/laporan.docx?${params.toString()}`);
+    });
+
+    const hariIni = new Date();
+    const tujuhHariLalu = new Date(hariIni);
+    tujuhHariLalu.setDate(tujuhHariLalu.getDate() - 7);
+    isiTanggal(tujuhHariLalu, hariIni);
+    muatLaporan();
+  </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

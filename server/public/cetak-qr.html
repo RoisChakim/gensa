@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cetak QR Generus — GENSA</title>
+  <link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#8A5A33">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #F6F1E9;
+      color: #352a21;
+      font-family: system-ui, sans-serif;
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.75rem;
+    }
+
+    .intro {
+      margin: 0 0 20px;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: #8A5A33;
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #5F7A57;
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    #pesan {
+      margin: 18px 0;
+    }
+
+    #kartu {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    }
+
+    .kartu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 20px;
+      border: 1px solid #b7c5b1;
+      border-radius: 12px;
+      background: #fffdf9;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .kartu img {
+      width: 180px;
+      height: 180px;
+      max-width: 100%;
+    }
+
+    .kartu h2 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .kartu p {
+      margin: 0;
+    }
+
+    .kode {
+      color: #5F7A57;
+      font-family: monospace;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+
+    .kartu button {
+      margin-top: 6px;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      main {
+        max-width: none;
+        padding: 0;
+      }
+
+      h1,
+      .intro,
+      #pesan,
+      button {
+        display: none !important;
+      }
+
+      #kartu {
+        display: block;
+      }
+
+      .kartu {
+        width: 100%;
+        min-height: 95mm;
+        margin: 0 0 8mm;
+        border: 1px solid #777;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      body.cetak-satu .kartu:not(.dipilih) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Cetak QR Generus</h1>
+    <p class="intro">Cetak semua kartu atau pilih kartu yang ingin dicetak.</p>
+    <button id="cetak-semua" type="button" disabled>Cetak semua</button>
+    <p id="pesan" role="status" aria-live="polite">Memuat data generus…</p>
+    <div id="kartu"></div>
+  </main>
+
+  <script>
+    'use strict';
+
+    const pesan = document.getElementById('pesan');
+    const daftar = document.getElementById('kartu');
+    const cetakSemua = document.getElementById('cetak-semua');
+
+    function bersihkanPilihan() {
+      document.body.classList.remove('cetak-satu');
+      for (const kartu of daftar.querySelectorAll('.dipilih')) {
+        kartu.classList.remove('dipilih');
+      }
+    }
+
+    window.addEventListener('afterprint', bersihkanPilihan);
+
+    cetakSemua.addEventListener('click', () => {
+      bersihkanPilihan();
+      window.print();
+    });
+
+    function buatKartu(generus) {
+      const kartu = document.createElement('article');
+      kartu.className = 'kartu';
+
+      const gambar = document.createElement('img');
+      gambar.src = `/api/generus/${encodeURIComponent(generus.id)}/qr.svg`;
+      gambar.alt = `QR ${generus.nama}`;
+      gambar.width = 180;
+      gambar.height = 180;
+
+      const nama = document.createElement('h2');
+      nama.textContent = generus.nama;
+
+      const kelas = document.createElement('p');
+      kelas.textContent = `${generus.kelas_sekolah} · ${generus.jenjang}`;
+
+      const labelKode = document.createElement('p');
+      labelKode.textContent = 'Kode manual';
+
+      const kode = document.createElement('p');
+      kode.className = 'kode';
+      kode.textContent = generus.kode_manual;
+
+      const tombol = document.createElement('button');
+      tombol.type = 'button';
+      tombol.textContent = 'Cetak kartu ini';
+      tombol.addEventListener('click', () => {
+        bersihkanPilihan();
+        kartu.classList.add('dipilih');
+        document.body.classList.add('cetak-satu');
+        window.print();
+      });
+
+      kartu.append(gambar, nama, kelas, labelKode, kode, tombol);
+      return kartu;
+    }
+
+    async function mulai() {
+      try {
+        const meResponse = await fetch('/api/me', { cache: 'no-store' });
+        if (meResponse.status === 401) {
+          window.location.replace('/login.html');
+          return;
+        }
+        if (!meResponse.ok) throw new Error('Gagal memeriksa akun.');
+
+        const me = await meResponse.json();
+        if (me.user.role !== 'kelompok') {
+          pesan.textContent = 'Halaman ini untuk pengurus kelompok.';
+          return;
+        }
+
+        const response = await fetch('/api/generus?status=approved', {
+          cache: 'no-store',
+        });
+        if (response.status === 401) {
+          window.location.replace('/login.html');
+          return;
+        }
+        if (!response.ok) throw new Error('Gagal memuat data generus.');
+
+        const data = await response.json();
+        if (!Array.isArray(data.generus)) {
+          throw new Error('Data generus tidak tersedia.');
+        }
+
+        if (data.generus.length === 0) {
+          pesan.textContent =
+            'Belum ada generus yang disetujui. Minta persetujuan Admin dulu.';
+          return;
+        }
+
+        for (const generus of data.generus) {
+          daftar.append(buatKartu(generus));
+        }
+
+        pesan.textContent = `${data.generus.length} kartu siap dicetak.`;
+        cetakSemua.disabled = false;
+      } catch {
+        pesan.textContent = 'Data belum bisa dimuat. Coba muat ulang halaman.';
+      }
+    }
+
+    mulai();
+  </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

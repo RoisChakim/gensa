@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F6F1E9">
+  <meta name="referrer" content="no-referrer">
+  <title>Kirim izin — GENSA</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    :root {
+      color-scheme: light;
+      --krem: #F6F1E9;
+      --coklat: #8A5A33;
+      --sage: #5F7A57;
+      --sage-muda: #7C9A6E;
+      --teks: #483B30;
+      --garis: #D8CDBE;
+      --putih: #FFFDFA;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      background: var(--krem);
+      color: var(--teks);
+      font-family: system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    h1 { margin: 0 0 8px; color: var(--coklat); }
+    p { margin: 0 0 16px; }
+
+    .kartu {
+      background: var(--putih);
+      border: 1px solid var(--garis);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    fieldset {
+      min-width: 0;
+      border: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    legend {
+      padding: 0;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .bidang { margin-bottom: 20px; }
+
+    input, select, textarea, button {
+      font: inherit;
+    }
+
+    input[type="text"], select, textarea {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      color: var(--teks);
+      background: var(--putih);
+      border: 1px solid var(--garis);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      background: var(--coklat);
+      color: white;
+      cursor: pointer;
+    }
+
+    button.secondary { background: var(--sage); }
+    button:disabled { opacity: 0.6; cursor: wait; }
+
+    :focus-visible {
+      outline: 3px solid var(--sage-muda);
+      outline-offset: 3px;
+    }
+
+    .pilihan-radio {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      margin-bottom: 20px;
+    }
+
+    .pilihan-radio label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      margin: 0;
+    }
+
+    .pilihan-radio input { accent-color: var(--sage); }
+
+    .aksi {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .bantuan { font-size: 0.9rem; margin: 8px 0 0; }
+
+    #pesan {
+      margin: 16px 0;
+      padding: 12px 16px;
+      background: #ECEFE5;
+      border-left: 4px solid var(--sage);
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    #pesan[data-jenis="error"] {
+      background: #F2E5D9;
+      border-left-color: var(--coklat);
+    }
+
+    video {
+      display: block;
+      width: 100%;
+      max-height: 360px;
+      border-radius: 10px;
+      background: var(--krem);
+      margin-top: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .kartu { padding: 16px; }
+      .aksi button { width: 100%; }
+    }
+  </style>
+  <script src="/jsQR.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Kirim izin</h1>
+    <p id="info-kegiatan">Memuat kegiatan…</p>
+
+    <p id="pesan" role="status" aria-live="polite" hidden></p>
+
+    <form id="form-izin" class="kartu" hidden>
+      <fieldset id="pilihan">
+        <div id="bidang-desa" class="bidang" hidden>
+          <label for="desa">Desa</label>
+          <select id="desa" disabled></select>
+        </div>
+
+        <div id="bidang-kelompok" class="bidang" hidden>
+          <label for="kelompok">Kelompok</label>
+          <select id="kelompok" disabled></select>
+        </div>
+
+        <div id="bidang-generus" class="bidang" hidden>
+          <label for="generus">Nama generus</label>
+          <select id="generus" disabled></select>
+        </div>
+      </fieldset>
+
+      <fieldset id="rincian" hidden disabled>
+        <legend>Alasan tidak hadir</legend>
+
+        <div class="pilihan-radio">
+          <label>
+            <input
+              type="radio"
+              name="alasan"
+              value="sakit"
+              checked
+              required
+            >
+            Sakit
+          </label>
+
+          <label>
+            <input type="radio" name="alasan" value="izin" required>
+            Izin
+          </label>
+        </div>
+
+        <div class="bidang">
+          <label id="label-keterangan" for="keterangan">
+            Keterangan (opsional)
+          </label>
+          <textarea
+            id="keterangan"
+            maxlength="500"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="bidang">
+          <label for="kode">Kode manual / kode QR</label>
+          <input
+            id="kode"
+            type="text"
+            maxlength="32"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            required
+            aria-describedby="bantuan-kode"
+          >
+          <p id="bantuan-kode" class="bantuan">
+            Gunakan kode milik nama yang dipilih.
+          </p>
+
+          <div class="aksi">
+            <button
+              id="scan"
+              type="button"
+              class="secondary"
+              hidden
+            >Scan barcode</button>
+
+            <button
+              id="hentikan-scan"
+              type="button"
+              class="secondary"
+              hidden
+            >Hentikan kamera</button>
+          </div>
+
+          <p id="bantuan-kamera" class="bantuan" hidden>
+            Kamera tidak tersedia. Silakan isi kode secara manual.
+          </p>
+
+          <video
+            id="video"
+            autoplay
+            muted
+            playsinline
+            aria-label="Pratinjau kamera untuk membaca kode QR"
+            hidden
+          ></video>
+          <canvas id="canvas" hidden></canvas>
+        </div>
+
+        <div class="aksi">
+          <button id="kirim" type="submit">Kirim izin</button>
+        </div>
+      </fieldset>
+    </form>
+  </main>
+
+  <script>
+    'use strict';
+
+    const token = new URLSearchParams(location.search).get('t');
+
+    const form = document.getElementById('form-izin');
+    const pilihan = document.getElementById('pilihan');
+    const rincian = document.getElementById('rincian');
+    const infoKegiatan = document.getElementById('info-kegiatan');
+    const pesan = document.getElementById('pesan');
+
+    const desa = document.getElementById('desa');
+    const kelompok = document.getElementById('kelompok');
+    const generus = document.getElementById('generus');
+
+    const bidangDesa = document.getElementById('bidang-desa');
+    const bidangKelompok = document.getElementById('bidang-kelompok');
+    const bidangGenerus = document.getElementById('bidang-generus');
+
+    const keterangan = document.getElementById('keterangan');
+    const labelKeterangan = document.getElementById('label-keterangan');
+    const kode = document.getElementById('kode');
+    const kirim = document.getElementById('kirim');
+
+    const scan = document.getElementById('scan');
+    const hentikanScan = document.getElementById('hentikan-scan');
+    const bantuanKamera = document.getElementById('bantuan-kamera');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+
+    let tingkat = null;
+    let versiPilihan = 0;
+    let sedangMengirim = false;
+    let stream = null;
+    let bingkai = null;
+    let versiKamera = 0;
+
+    function beriPesan(teks, jenis = 'info') {
+      pesan.textContent = teks;
+      pesan.dataset.jenis = jenis;
+      pesan.hidden = !teks;
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        ...options,
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: {
+          Accept: 'application/json',
+          ...(options.body ? { 'Content-Type': 'application/json' } : {})
+        }
+      });
+
+      let data;
+
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Respons server tidak dapat dibaca.');
+      }
+
+      if (!response.ok) {
+        const teks =
+          typeof data?.error === 'string' ? data.error :
+          typeof data?.message === 'string' ? data.message :
+          'Permintaan belum berhasil. Silakan coba lagi.';
+
+        const error = new Error(teks);
+        error.status = response.status;
+        throw error;
+      }
+
+      return data;
+    }
+
+    function alamatApi(parameter = {}) {
+      const query = new URLSearchParams({ t: token });
+
+      for (const [nama, nilai] of Object.entries(parameter)) {
+        query.set(nama, String(nilai));
+      }
+
+      return '/api/izin?' + query.toString();
+    }
+
+    function pesanMuat(error) {
+      beriPesan(
+        error.status === 404
+          ? 'Tautan izin tidak ditemukan atau kegiatan sudah selesai.'
+          : error.message,
+        'error'
+      );
+    }
+
+    function formatTanggal(nilai) {
+      const tanggal = new Date(String(nilai).slice(0, 10) + 'T12:00:00');
+
+      if (Number.isNaN(tanggal.getTime())) {
+        return String(nilai);
+      }
+
+      const hasil = new Intl.DateTimeFormat('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(tanggal);
+
+      return hasil.charAt(0).toUpperCase() + hasil.slice(1);
+    }
+
+    function kosongkanSelect(select, bidang) {
+      select.replaceChildren();
+      select.value = '';
+      select.required = false;
+      select.disabled = true;
+      bidang.hidden = true;
+    }
+
+    function isiSelect(select, bidang, daftar, judul) {
+      select.replaceChildren();
+
+      const awal = document.createElement('option');
+      awal.value = '';
+      awal.textContent = judul;
+      select.append(awal);
+
+      for (const item of daftar) {
+        const option = document.createElement('option');
+        option.value = String(item.id);
+        option.textContent = item.nama;
+        select.append(option);
+      }
+
+      select.value = '';
+      select.required = true;
+      select.disabled = false;
+      bidang.hidden = false;
+    }
+
+    function ubahAlasan() {
+      const alasan = form.querySelector(
+        'input[name="alasan"]:checked'
+      ).value;
+
+      keterangan.required = alasan === 'izin';
+      keterangan.setCustomValidity('');
+      labelKeterangan.textContent = alasan === 'izin'
+        ? 'Alasan izin'
+        : 'Keterangan (opsional)';
+    }
+
+    function hentikanKamera() {
+      versiKamera += 1;
+
+      if (bingkai !== null) {
+        cancelAnimationFrame(bingkai);
+        bingkai = null;
+      }
+
+      if (stream) {
+        for (const track of stream.getTracks()) {
+          track.stop();
+        }
+        stream = null;
+      }
+
+      video.pause();
+      video.srcObject = null;
+      video.hidden = true;
+      hentikanScan.hidden = true;
+      scan.disabled = false;
+      canvas.width = 0;
+      canvas.height = 0;
+    }
+
+    function resetRincian() {
+      hentikanKamera();
+      rincian.hidden = true;
+      rincian.disabled = true;
+      kode.value = '';
+      keterangan.value = '';
+      form.querySelector('input[value="sakit"]').checked = true;
+      ubahAlasan();
+    }
+
+    async function muatAwal() {
+      if (!token || !/^[a-fA-F0-9]{32}$/.test(token)) {
+        infoKegiatan.textContent = '';
+        beriPesan('Tautan izin tidak valid.', 'error');
+        return;
+      }
+
+      const versi = ++versiPilihan;
+
+      try {
+        const data = await api(alamatApi());
+
+        if (versi !== versiPilihan) return;
+
+        tingkat = data.pertemuan.tingkat;
+        const namaTingkat = {
+          kelompok: 'Kelompok',
+          desa: 'Desa',
+          daerah: 'Daerah'
+        };
+
+        infoKegiatan.textContent =
+          formatTanggal(data.pertemuan.tanggal) +
+          ' · ' + namaTingkat[tingkat];
+
+        form.hidden = false;
+
+        if (tingkat === 'daerah') {
+          isiSelect(desa, bidangDesa, data.desa, 'Pilih desa');
+
+          if (data.desa.length === 0) {
+            beriPesan('Belum ada desa yang dapat dipilih.');
+          }
+        } else if (tingkat === 'desa') {
+          isiSelect(
+            kelompok,
+            bidangKelompok,
+            data.kelompok,
+            'Pilih kelompok'
+          );
+
+          if (data.kelompok.length === 0) {
+            beriPesan('Belum ada kelompok yang dapat dipilih.');
+          }
+        } else {
+          isiSelect(
+            generus,
+            bidangGenerus,
+            data.generus,
+            'Pilih nama generus'
+          );
+
+          if (data.generus.length === 0) {
+            beriPesan('Belum ada nama yang sesuai dengan kegiatan ini.');
+          }
+        }
+      } catch (error) {
+        if (versi !== versiPilihan) return;
+        infoKegiatan.textContent = '';
+        pesanMuat(error);
+      }
+    }
+
+    desa.addEventListener('change', async () => {
+      const versi = ++versiPilihan;
+
+      kosongkanSelect(kelompok, bidangKelompok);
+      kosongkanSelect(generus, bidangGenerus);
+      resetRincian();
+      beriPesan('');
+
+      if (!desa.value) return;
+
+      beriPesan('Memuat kelompok…');
+
+      try {
+        const data = await api(alamatApi({ desa_id: desa.value }));
+
+        if (versi !== versiPilihan) return;
+
+        isiSelect(
+          kelompok,
+          bidangKelompok,
+          data.kelompok,
+          'Pilih kelompok'
+        );
+
+        beriPesan(
+          data.kelompok.length === 0
+            ? 'Belum ada kelompok di desa ini.'
+            : ''
+        );
+      } catch (error) {
+        if (versi === versiPilihan) pesanMuat(error);
+      }
+    });
+
+    kelompok.addEventListener('change', async () => {
+      const versi = ++versiPilihan;
+
+      kosongkanSelect(generus, bidangGenerus);
+      resetRincian();
+      beriPesan('');
+
+      if (!kelompok.value) return;
+
+      const parameter = { kelompok_id: kelompok.value };
+
+      if (tingkat === 'daerah') {
+        parameter.desa_id = desa.value;
+      }
+
+      beriPesan('Memuat nama…');
+
+      try {
+        const data = await api(alamatApi(parameter));
+
+        if (versi !== versiPilihan) return;
+
+        isiSelect(
+          generus,
+          bidangGenerus,
+          data.generus,
+          'Pilih nama generus'
+        );
+
+        beriPesan(
+          data.generus.length === 0
+            ? 'Belum ada nama yang sesuai dengan kegiatan ini.'
+            : ''
+        );
+      } catch (error) {
+        if (versi === versiPilihan) pesanMuat(error);
+      }
+    });
+
+    generus.addEventListener('change', () => {
+      resetRincian();
+      beriPesan('');
+
+      if (generus.value) {
+        rincian.hidden = false;
+        rincian.disabled = false;
+      }
+    });
+
+    for (const radio of form.querySelectorAll('input[name="alasan"]')) {
+      radio.addEventListener('change', ubahAlasan);
+    }
+
+    keterangan.addEventListener('input', () => {
+      keterangan.setCustomValidity('');
+    });
+
+    hentikanScan.addEventListener('click', hentikanKamera);
+
+    scan.addEventListener('click', async () => {
+      if (sedangMengirim) return;
+
+      hentikanKamera();
+      const versi = versiKamera;
+
+      scan.disabled = true;
+      beriPesan('Arahkan kamera ke kode QR.');
+
+      try {
+        const kamera = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: 'environment' }
+        });
+
+        if (versi !== versiKamera) {
+          for (const track of kamera.getTracks()) track.stop();
+          return;
+        }
+
+        stream = kamera;
+        video.srcObject = kamera;
+        video.hidden = false;
+        hentikanScan.hidden = false;
+        await video.play();
+
+        if (versi !== versiKamera) return;
+
+        const context = canvas.getContext('2d', {
+          willReadFrequently: true
+        });
+
+        if (!context) {
+          throw new Error('Kamera tidak dapat digunakan.');
+        }
+
+        function bacaBingkai() {
+          if (versi !== versiKamera || !stream) return;
+
+          try {
+            if (video.readyState >= 2 && video.videoWidth > 0) {
+              const skala = Math.min(1, 720 / video.videoWidth);
+              canvas.width = Math.round(video.videoWidth * skala);
+              canvas.height = Math.round(video.videoHeight * skala);
+
+              context.drawImage(
+                video,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+              );
+
+              const piksel = context.getImageData(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+              );
+
+              const hasil = window.jsQR(
+                piksel.data,
+                piksel.width,
+                piksel.height
+              );
+
+              if (hasil) {
+                const terbaca = hasil.data.trim();
+                hentikanKamera();
+
+                if (
+                  /^[a-fA-F0-9]{32}$/.test(terbaca) ||
+                  /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(terbaca)
+                ) {
+                  kode.value = terbaca;
+                  beriPesan('Kode terbaca. Silakan kirim izin.');
+                  kode.focus();
+                } else {
+                  beriPesan(
+                    'Kode yang terbaca bukan kode GENSA. Silakan coba lagi.',
+                    'error'
+                  );
+                }
+
+                return;
+              }
+            }
+
+            bingkai = requestAnimationFrame(bacaBingkai);
+          } catch {
+            hentikanKamera();
+            beriPesan(
+              'Kode belum dapat dibaca. Silakan isi kode secara manual.',
+              'error'
+            );
+          }
+        }
+
+        bingkai = requestAnimationFrame(bacaBingkai);
+      } catch {
+        if (versi !== versiKamera) return;
+
+        hentikanKamera();
+        beriPesan(
+          'Kamera tidak dapat dibuka. Izinkan akses kamera atau isi kode manual.',
+          'error'
+        );
+      }
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (sedangMengirim || !generus.value) return;
+
+      const alasan = form.querySelector(
+        'input[name="alasan"]:checked'
+      ).value;
+
+      if (alasan === 'izin' && !keterangan.value.trim()) {
+        keterangan.setCustomValidity('Tuliskan alasan izin.');
+        keterangan.reportValidity();
+        return;
+      }
+
+      if (!form.reportValidity()) return;
+
+      const body = {
+        generus_id: Number(generus.value),
+        kode: kode.value.trim(),
+        alasan,
+        keterangan: keterangan.value.trim() || null
+      };
+
+      hentikanKamera();
+      sedangMengirim = true;
+      pilihan.disabled = true;
+      rincian.disabled = true;
+      kirim.textContent = 'Mengirim…';
+      beriPesan('Mengirim izin…');
+
+      try {
+        await api(alamatApi(), {
+          method: 'POST',
+          body: JSON.stringify(body)
+        });
+
+        kode.value = '';
+        keterangan.value = '';
+        form.hidden = true;
+
+        beriPesan(
+          'Izin terkirim. Menunggu persetujuan pengurus kelompok.'
+        );
+      } catch (error) {
+        beriPesan(error.message, 'error');
+      } finally {
+        sedangMengirim = false;
+        pilihan.disabled = false;
+        rincian.disabled = !generus.value;
+        kirim.textContent = 'Kirim izin';
+      }
+    });
+
+    window.addEventListener('pagehide', hentikanKamera);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) hentikanKamera();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const kameraTersedia = Boolean(
+        window.isSecureContext &&
+        navigator.mediaDevices?.getUserMedia &&
+        typeof window.jsQR === 'function'
+      );
+
+      scan.hidden = !kameraTersedia;
+      bantuanKamera.hidden = kameraTersedia;
+      muatAwal();
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

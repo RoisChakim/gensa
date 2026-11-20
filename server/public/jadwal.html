@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jadwal Pengajian — GENSA</title>
+  <link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#8A5A33">
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: system-ui, sans-serif;
+      color: #49392d;
+      background: #F6F1E9;
+      --brown: #8A5A33;
+      --sage: #5F7A57;
+      --sage-light: #7C9A6E;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 850px; margin: auto; padding: 24px 16px 48px; }
+    h1 { margin: 0 0 8px; color: var(--brown); font-size: 1.8rem; }
+    h2 { margin: 0 0 18px; font-size: 1.25rem; }
+    h3 { margin: 0; font-size: 1.1rem; }
+    p { line-height: 1.6; }
+    button, input, select { font: inherit; }
+    button, input:not([type="checkbox"]), select { min-height: 44px; }
+    button {
+      padding: 10px 16px;
+      border: 1px solid var(--sage);
+      border-radius: 10px;
+      background: var(--sage);
+      color: white;
+      cursor: pointer;
+    }
+    button.secondary {
+      color: var(--brown);
+      background: #fffdf8;
+      border-color: var(--brown);
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    :focus-visible { outline: 3px solid var(--brown); outline-offset: 3px; }
+    input:not([type="checkbox"]), select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #a99580;
+      border-radius: 8px;
+      background: #fffdf8;
+      color: inherit;
+    }
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 auto;
+      accent-color: var(--sage);
+    }
+    .panel, article {
+      padding: 20px;
+      border: 1px solid #d9cdbd;
+      border-radius: 14px;
+      background: #fffdf8;
+    }
+    .panel { margin: 24px 0; }
+    article + article { margin-top: 14px; }
+    form { display: grid; gap: 18px; }
+    .field { display: grid; gap: 7px; }
+    fieldset {
+      min-width: 0;
+      margin: 0;
+      padding: 12px;
+      border: 1px solid #d9cdbd;
+      border-radius: 10px;
+    }
+    legend { padding: 0 6px; }
+    .checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 44px;
+      cursor: pointer;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .meta { margin: 8px 0; overflow-wrap: anywhere; }
+    .status {
+      display: inline-block;
+      padding: 4px 10px;
+      border: 1px solid var(--sage-light);
+      border-radius: 20px;
+      color: var(--sage);
+      background: #f1f5ed;
+      font-size: .9rem;
+    }
+    .editor { margin-top: 20px; border-top: 1px solid #d9cdbd; padding-top: 20px; }
+    #pesan { min-height: 1.6em; margin: 16px 0; }
+    #pesan[data-error="true"] { color: #874526; }
+    [hidden] { display: none !important; }
+
+    @media (min-width: 600px) {
+      main { padding-top: 40px; }
+      .checks { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Jadwal Pengajian</h1>
+    <p>Buat dan kelola jadwal pengajian sesuai wilayah Anda.</p>
+    <p id="pesan" role="status" aria-live="polite"></p>
+
+    <section class="panel" id="panel-buat" hidden aria-labelledby="judul-buat">
+      <h2 id="judul-buat">Buat jadwal baru</h2>
+
+      <form id="form-buat">
+        <label class="field">
+          <span>Tingkat</span>
+          <select id="tingkat" required></select>
+        </label>
+
+        <label class="field" id="field-kelompok" hidden>
+          <span>ID Kelompok</span>
+          <input id="kelompok-id" type="number" min="1" step="1">
+        </label>
+
+        <label class="field" id="field-desa" hidden>
+          <span>ID Desa</span>
+          <input id="desa-id" type="number" min="1" step="1">
+        </label>
+
+        <fieldset>
+          <legend>Jenjang — pilih minimal satu</legend>
+          <div class="checks" id="jenjang-baru"></div>
+        </fieldset>
+
+        <label class="field">
+          <span>Tanggal</span>
+          <input id="tanggal-baru" type="date" required>
+        </label>
+
+        <div>
+          <button id="tombol-buat" type="submit">Buat jadwal</button>
+        </div>
+      </form>
+    </section>
+
+    <section aria-labelledby="judul-daftar">
+      <h2 id="judul-daftar">Daftar jadwal</h2>
+      <label class="check">
+        <input id="tampilkan-semua" type="checkbox">
+        <span>Tampilkan semua</span>
+      </label>
+      <div id="daftar" aria-busy="true"></div>
+    </section>
+  </main>
+
+  <script>
+    'use strict';
+
+    const JENJANG = [
+      ['caberawit', 'Caberawit'],
+      ['pra_remaja', 'Pra remaja'],
+      ['remaja', 'Remaja'],
+      ['usia_nikah', 'Usia nikah'],
+    ];
+
+    const TINGKAT = {
+      kelompok: 'Kelompok',
+      desa: 'Desa',
+      daerah: 'Daerah',
+    };
+
+    const pesan = document.getElementById('pesan');
+    const daftar = document.getElementById('daftar');
+    const formBuat = document.getElementById('form-buat');
+    const tingkatInput = document.getElementById('tingkat');
+    const kelompokInput = document.getElementById('kelompok-id');
+    const desaInput = document.getElementById('desa-id');
+    const tanggalInput = document.getElementById('tanggal-baru');
+    const semuaInput = document.getElementById('tampilkan-semua');
+
+    let user;
+    let pertemuan = [];
+
+    function buatElemen(tag, text, className) {
+      const element = document.createElement(tag);
+      if (text !== undefined) element.textContent = text;
+      if (className) element.className = className;
+      return element;
+    }
+
+    function beriPesan(text, error = false) {
+      pesan.textContent = text;
+      pesan.dataset.error = String(error);
+    }
+
+    function hariIni() {
+      const now = new Date();
+      return [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        String(now.getDate()).padStart(2, '0'),
+      ].join('-');
+    }
+
+    function tanggalSaja(value) {
+      if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}/.test(value)) {
+        throw new Error('Format tanggal dari server tidak valid.');
+      }
+      return value.slice(0, 10);
+    }
+
+    function labelTanggal(value) {
+      const [tahun, bulan, hari] = tanggalSaja(value).split('-');
+      return `${hari}/${bulan}/${tahun}`;
+    }
+
+    async function api(path, method = 'GET', body) {
+      const response = await fetch(path, {
+        method,
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers: body === undefined
+          ? { Accept: 'application/json' }
+          : {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+
+      if (response.status === 401) {
+        window.location.replace('/login.html');
+        throw new Error('Sesi berakhir. Silakan masuk kembali.');
+      }
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data && typeof data.error === 'string'
+            ? data.error
+            : 'Permintaan gagal. Silakan coba lagi.'
+        );
+      }
+
+      if (!data) throw new Error('Respons server tidak valid.');
+      return data;
+    }
+
+    function buatCheckbox(container, selected = []) {
+      const inputs = [];
+
+      for (const [value, text] of JENJANG) {
+        const label = buatElemen('label', undefined, 'check');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = value;
+        input.checked = selected.includes(value);
+        input.addEventListener('change', () => {
+          for (const checkbox of inputs) checkbox.setCustomValidity('');
+        });
+        label.append(input, buatElemen('span', text));
+        container.append(label);
+        inputs.push(input);
+      }
+
+      return inputs;
+    }
+
+    function bacaJenjang(inputs) {
+      const selected = inputs.filter((input) => input.checked)
+        .map((input) => input.value);
+
+      inputs[0].setCustomValidity(
+        selected.length ? '' : 'Pilih minimal satu jenjang.'
+      );
+
+      if (!selected.length) {
+        inputs[0].reportValidity();
+        return null;
+      }
+
+      return selected;
+    }
+
+    const jenjangBaru = buatCheckbox(document.getElementById('jenjang-baru'));
+
+    function bolehKelola(item) {
+      if (user.role === 'admin') return true;
+      if (user.role !== item.tingkat) return false;
+
+      return (
+        (user.role === 'kelompok' && user.kelompok_id === item.kelompok_id) ||
+        (user.role === 'desa' && user.desa_id === item.desa_id) ||
+        user.role === 'daerah'
+      );
+    }
+
+    function aturWilayah() {
+      const kelompok = user.role === 'admin' && tingkatInput.value === 'kelompok';
+      const desa = user.role === 'admin' && tingkatInput.value === 'desa';
+
+      document.getElementById('field-kelompok').hidden = !kelompok;
+      document.getElementById('field-desa').hidden = !desa;
+
+      kelompokInput.disabled = !kelompok;
+      desaInput.disabled = !desa;
+      kelompokInput.required = kelompok;
+      desaInput.required = desa;
+    }
+
+    function bacaId(input) {
+      if (!input.value.trim()) return null;
+
+      const id = Number(input.value);
+      if (!Number.isSafeInteger(id) || id < 1) {
+        throw new Error('ID wilayah harus berupa bilangan bulat positif.');
+      }
+      return id;
+    }
+
+    async function muatDaftar() {
+      daftar.setAttribute('aria-busy', 'true');
+      try {
+        const data = await api('/api/pertemuan');
+        if (!Array.isArray(data.pertemuan)) {
+          throw new Error('Daftar pertemuan dari server tidak valid.');
+        }
+        pertemuan = data.pertemuan;
+        tampilkanDaftar();
+      } finally {
+        daftar.setAttribute('aria-busy', 'false');
+      }
+    }
+
+    function bukaEditor(item, article, actions) {
+      if (article.querySelector('form')) return;
+
+      const form = buatElemen('form', undefined, 'editor');
+      const label = buatElemen('label', undefined, 'field');
+      const tanggal = document.createElement('input');
+      tanggal.type = 'date';
+      tanggal.required = true;
+      tanggal.value = tanggalSaja(item.tanggal);
+      label.append(buatElemen('span', 'Tanggal'), tanggal);
+
+      const fieldset = document.createElement('fieldset');
+      const checks = buatElemen('div', undefined, 'checks');
+      fieldset.append(buatElemen('legend', 'Jenjang — pilih minimal satu'), checks);
+      const inputs = buatCheckbox(checks, item.jenjang_target);
+
+      const buttons = buatElemen('div', undefined, 'actions');
+      const simpan = buatElemen('button', 'Simpan');
+      simpan.type = 'submit';
+      const batal = buatElemen('button', 'Batal', 'secondary');
+      batal.type = 'button';
+
+      buttons.append(simpan, batal);
+      form.append(label, fieldset, buttons);
+      article.append(form);
+      actions.hidden = true;
+      tanggal.focus();
+
+      batal.addEventListener('click', () => {
+        form.remove();
+        actions.hidden = false;
+        actions.querySelector('button').focus();
+      });
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const jenjang = bacaJenjang(inputs);
+        if (!jenjang) return;
+
+        simpan.disabled = true;
+        batal.disabled = true;
+
+        try {
+          await api(`/api/pertemuan/${item.id}`, 'PATCH', {
+            tanggal: tanggal.value,
+            jenjang,
+          });
+
+          form.remove();
+          actions.hidden = false;
+          beriPesan('Jadwal berhasil diubah.');
+
+          try {
+            await muatDaftar();
+          } catch (error) {
+            beriPesan(`Jadwal sudah diubah. Daftar gagal dimuat: ${error.message}`, true);
+          }
+        } catch (error) {
+          beriPesan(error.message, true);
+        } finally {
+          simpan.disabled = false;
+          batal.disabled = false;
+        }
+      });
+    }
+
+    function tambahkanTombolIzin(wadah, item) {
+      if (item.selesai_pada !== null) return;
+
+      const salin = buatElemen('button', 'Salin link izin', 'secondary');
+      salin.type = 'button';
+
+      salin.addEventListener('click', async () => {
+        salin.disabled = true;
+
+        try {
+          const data = await api(
+            '/api/pertemuan/' + item.id + '/link-izin'
+          );
+
+          if (
+            typeof data.url !== 'string' ||
+            !/^\/izin\.html\?t=[a-f0-9]{32}$/.test(data.url)
+          ) {
+            throw new Error('Tautan izin dari server tidak valid.');
+          }
+
+          const teks = location.origin + data.url;
+          let berhasil = false;
+
+          if (navigator.clipboard?.writeText) {
+            try {
+              await navigator.clipboard.writeText(teks);
+              berhasil = true;
+            } catch {
+              // Lanjutkan ke fallback.
+            }
+          }
+
+          if (!berhasil) {
+            const sebelumnya = document.activeElement;
+            const penampung = document.createElement('textarea');
+
+            penampung.value = teks;
+            penampung.readOnly = true;
+            penampung.style.position = 'fixed';
+            penampung.style.top = '0';
+            penampung.style.left = '0';
+            penampung.style.opacity = '0';
+            penampung.style.fontSize = '16px';
+
+            document.body.append(penampung);
+
+            try {
+              penampung.focus();
+              penampung.select();
+              penampung.setSelectionRange(0, teks.length);
+              berhasil = document.execCommand('copy');
+            } finally {
+              penampung.remove();
+              if (sebelumnya instanceof HTMLElement) sebelumnya.focus();
+            }
+          }
+
+          if (!berhasil) {
+            throw new Error(
+              'Link belum dapat disalin otomatis. Buka Kelola izin untuk menyalinnya.'
+            );
+          }
+
+          beriPesan('Link izin disalin.');
+        } catch (error) {
+          beriPesan(error.message, true);
+        } finally {
+          salin.disabled = false;
+        }
+      });
+
+      const kelola = buatElemen('button', 'Kelola izin', 'secondary');
+      kelola.type = 'button';
+
+      kelola.addEventListener('click', () => {
+        location.href =
+          '/izin-kelola.html?pertemuan=' + encodeURIComponent(item.id);
+      });
+
+      wadah.append(salin, kelola);
+    }
+
+    function tampilkanDaftar() {
+      const today = hariIni();
+      const semua = semuaInput.checked;
+      const items = pertemuan
+        .filter((item) => semua || (
+          tanggalSaja(item.tanggal) >= today &&
+          item.selesai_pada === null
+        ))
+        .sort((a, b) => {
+          const dateOrder = tanggalSaja(a.tanggal)
+            .localeCompare(tanggalSaja(b.tanggal));
+          return semua
+            ? -dateOrder || Number(b.id) - Number(a.id)
+            : dateOrder || Number(a.id) - Number(b.id);
+        });
+
+      daftar.replaceChildren();
+
+      if (!items.length) {
+        daftar.append(buatElemen('p', 'Belum ada jadwal.'));
+        return;
+      }
+
+      for (const item of items) {
+        const article = document.createElement('article');
+        const namaJenjang = item.jenjang_target.map((value) => {
+          const entry = JENJANG.find(([key]) => key === value);
+          return entry ? entry[1] : value;
+        }).join(', ');
+
+        article.append(
+          buatElemen('h3', labelTanggal(item.tanggal)),
+          buatElemen('p', `Tingkat ${TINGKAT[item.tingkat] || item.tingkat}`, 'meta'),
+          buatElemen('p', namaJenjang, 'meta'),
+          buatElemen(
+            'p',
+            item.selesai_pada === null ? 'Akan datang' : 'Selesai',
+            'status'
+          )
+        );
+
+        if (bolehKelola(item)) {
+          const actions = buatElemen('div', undefined, 'actions');
+          const ubah = buatElemen('button', 'Ubah', 'secondary');
+          const hapus = buatElemen('button', 'Hapus', 'secondary');
+          ubah.type = 'button';
+          hapus.type = 'button';
+
+          ubah.addEventListener('click', () => bukaEditor(item, article, actions));
+
+          hapus.addEventListener('click', async () => {
+            if (!window.confirm('Hapus jadwal ini?')) return;
+
+            ubah.disabled = true;
+            hapus.disabled = true;
+
+            try {
+              await api(`/api/pertemuan/${item.id}`, 'DELETE');
+              pertemuan = pertemuan.filter((row) => row.id !== item.id);
+              tampilkanDaftar();
+              beriPesan('Jadwal berhasil dihapus.');
+
+              try {
+                await muatDaftar();
+              } catch (error) {
+                beriPesan(`Jadwal sudah dihapus. Daftar gagal dimuat: ${error.message}`, true);
+              }
+            } catch (error) {
+              beriPesan(error.message, true);
+            } finally {
+              ubah.disabled = false;
+              hapus.disabled = false;
+            }
+          });
+
+          actions.append(ubah, hapus);
+          tambahkanTombolIzin(actions, item);
+          article.append(actions);
+        }
+
+        daftar.append(article);
+      }
+    }
+
+    tingkatInput.addEventListener('change', aturWilayah);
+    semuaInput.addEventListener('change', () => {
+      try {
+        tampilkanDaftar();
+      } catch (error) {
+        beriPesan(error.message, true);
+      }
+    });
+
+    formBuat.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const jenjang = bacaJenjang(jenjangBaru);
+      if (!jenjang) return;
+
+      const button = document.getElementById('tombol-buat');
+      button.disabled = true;
+
+      try {
+        const tingkat = tingkatInput.value;
+        const kelompokId = tingkat === 'kelompok'
+          ? (user.role === 'admin' ? bacaId(kelompokInput) : user.kelompok_id)
+          : null;
+        const desaId = tingkat === 'desa'
+          ? (user.role === 'admin' ? bacaId(desaInput) : user.desa_id)
+          : null;
+
+        await api('/api/pertemuan', 'POST', {
+          tingkat,
+          kelompok_id: kelompokId,
+          desa_id: desaId,
+          jenjang,
+          tanggal: tanggalInput.value,
+        });
+
+        formBuat.reset();
+        for (const input of jenjangBaru) input.setCustomValidity('');
+        tanggalInput.value = hariIni();
+        aturWilayah();
+        beriPesan('Jadwal berhasil dibuat.');
+
+        try {
+          await muatDaftar();
+        } catch (error) {
+          beriPesan(`Jadwal sudah dibuat. Daftar gagal dimuat: ${error.message}`, true);
+        }
+      } catch (error) {
+        beriPesan(error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    async function mulai() {
+      beriPesan('Memuat jadwal…');
+
+      try {
+        const data = await api('/api/me');
+        user = data.user;
+
+        if (!user || !['admin', 'kelompok', 'desa', 'daerah'].includes(user.role)) {
+          throw new Error('Peran akun tidak dapat mengakses halaman jadwal.');
+        }
+
+        const pilihan = user.role === 'admin'
+          ? ['kelompok', 'desa', 'daerah']
+          : [user.role];
+
+        for (const value of pilihan) {
+          const option = buatElemen('option', TINGKAT[value]);
+          option.value = value;
+          tingkatInput.append(option);
+        }
+
+        tanggalInput.value = hariIni();
+        aturWilayah();
+        document.getElementById('panel-buat').hidden = false;
+        await muatDaftar();
+        beriPesan('');
+      } catch (error) {
+        beriPesan(error.message, true);
+      } finally {
+        daftar.setAttribute('aria-busy', 'false');
+      }
+    }
+
+    mulai();
+  </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

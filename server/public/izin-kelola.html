@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F6F1E9">
+  <meta name="referrer" content="no-referrer">
+  <title>Kelola izin — GENSA</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    :root {
+      color-scheme: light;
+      --krem: #F6F1E9;
+      --coklat: #8A5A33;
+      --sage: #5F7A57;
+      --sage-muda: #7C9A6E;
+      --teks: #483B30;
+      --garis: #D8CDBE;
+      --putih: #FFFDFA;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      background: var(--krem);
+      color: var(--teks);
+      font-family: system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    h1, h2, h3 { color: var(--coklat); }
+    h1 { margin: 12px 0 8px; }
+    h2 { margin: 0 0 12px; font-size: 1.25rem; }
+    h3 { margin: 0 0 8px; font-size: 1.1rem; }
+    p { margin: 0 0 12px; }
+    a { color: var(--coklat); }
+
+    .kembali {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
+
+    .kartu {
+      background: var(--putih);
+      border: 1px solid var(--garis);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      overflow-wrap: anywhere;
+    }
+
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+
+    input, button { font: inherit; }
+
+    input {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--garis);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: var(--putih);
+      color: var(--teks);
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      background: var(--coklat);
+      color: white;
+      cursor: pointer;
+    }
+
+    button.secondary { background: var(--sage); }
+    button:disabled { opacity: 0.6; cursor: wait; }
+
+    :focus-visible {
+      outline: 3px solid var(--sage-muda);
+      outline-offset: 3px;
+    }
+
+    .aksi {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .keterangan { white-space: pre-wrap; }
+    #daftar { margin-top: 16px; }
+
+    #pesan {
+      margin: 16px 0;
+      padding: 12px 16px;
+      background: #ECEFE5;
+      border-left: 4px solid var(--sage);
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    #pesan[data-jenis="error"] {
+      background: #F2E5D9;
+      border-left-color: var(--coklat);
+    }
+
+    @media (max-width: 480px) {
+      .kartu { padding: 16px; }
+      .aksi button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="kembali" href="/jadwal.html">Kembali ke jadwal</a>
+    <h1>Kelola izin</h1>
+    <p>Bagikan tautan kegiatan dan periksa pengajuan yang masuk.</p>
+
+    <p id="pesan" role="status" aria-live="polite" hidden></p>
+
+    <section id="bagian-link" class="kartu" hidden>
+      <h2>Tautan izin</h2>
+      <label for="link-izin">Link untuk dibagikan</label>
+      <input
+        id="link-izin"
+        type="text"
+        readonly
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <div class="aksi">
+        <button id="salin" type="button" class="secondary">
+          Salin link
+        </button>
+      </div>
+    </section>
+
+    <section id="bagian-daftar" hidden>
+      <h2>Pengajuan izin</h2>
+      <div id="daftar"></div>
+    </section>
+  </main>
+
+  <script>
+    'use strict';
+
+    const pertemuanId = new URLSearchParams(location.search)
+      .get('pertemuan');
+
+    const pesan = document.getElementById('pesan');
+    const bagianLink = document.getElementById('bagian-link');
+    const bagianDaftar = document.getElementById('bagian-daftar');
+    const linkIzin = document.getElementById('link-izin');
+    const salin = document.getElementById('salin');
+    const daftar = document.getElementById('daftar');
+
+    let sedangMemutuskan = false;
+
+    function beriPesan(teks, jenis = 'info') {
+      pesan.textContent = teks;
+      pesan.dataset.jenis = jenis;
+      pesan.hidden = !teks;
+    }
+
+    function buatElemen(tag, teks, kelas) {
+      const elemen = document.createElement(tag);
+      if (teks !== undefined) elemen.textContent = teks;
+      if (kelas) elemen.className = kelas;
+      return elemen;
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        ...options,
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: {
+          Accept: 'application/json',
+          ...(options.body ? { 'Content-Type': 'application/json' } : {})
+        }
+      });
+
+      if (response.status === 401) {
+        location.replace('/login.html');
+        throw new Error('Silakan masuk kembali.');
+      }
+
+      let data;
+
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Respons server tidak dapat dibaca.');
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          typeof data?.error === 'string' ? data.error :
+          typeof data?.message === 'string' ? data.message :
+          'Permintaan belum berhasil. Silakan coba lagi.'
+        );
+      }
+
+      return data;
+    }
+
+    function formatWaktu(nilai) {
+      const waktu = new Date(nilai);
+
+      if (Number.isNaN(waktu.getTime())) return '—';
+
+      return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(waktu);
+    }
+
+    function aturTombolPutusan(disabled) {
+      for (const tombol of daftar.querySelectorAll('button.putusan')) {
+        tombol.disabled = disabled;
+      }
+    }
+
+    function tampilkanDaftar(items) {
+      daftar.replaceChildren();
+
+      if (items.length === 0) {
+        daftar.append(buatElemen(
+          'p',
+          'Belum ada pengajuan izin untuk kegiatan ini.',
+          'kartu'
+        ));
+        return;
+      }
+
+      const labelStatus = {
+        menunggu: 'Menunggu',
+        disetujui: 'Disetujui',
+        ditolak: 'Ditolak'
+      };
+
+      for (const item of items) {
+        const kartu = buatElemen('article', undefined, 'kartu');
+
+        kartu.append(
+          buatElemen('h3', item.nama),
+          buatElemen('p', 'Kelas: ' + (item.kelas_sekolah ?? '—')),
+          buatElemen(
+            'p',
+            'Alasan: ' + (item.alasan === 'sakit' ? 'Sakit' : 'Izin')
+          ),
+          buatElemen(
+            'p',
+            'Keterangan: ' + (item.keterangan || '—'),
+            'keterangan'
+          ),
+          buatElemen(
+            'p',
+            'Status: ' + (labelStatus[item.status] || item.status)
+          ),
+          buatElemen('p', 'Dikirim: ' + formatWaktu(item.created_at))
+        );
+
+        if (item.catatan_penolakan) {
+          kartu.append(buatElemen(
+            'p',
+            'Catatan penolakan: ' + item.catatan_penolakan,
+            'keterangan'
+          ));
+        }
+
+        if (item.status === 'menunggu') {
+          const aksi = buatElemen('div', undefined, 'aksi');
+
+          const setujui = buatElemen(
+            'button',
+            'Setujui',
+            'putusan secondary'
+          );
+          setujui.type = 'button';
+          setujui.disabled = sedangMemutuskan;
+          setujui.addEventListener('click', () => {
+            putuskan(item.id, 'setujui');
+          });
+
+          const tolak = buatElemen('button', 'Tolak', 'putusan');
+          tolak.type = 'button';
+          tolak.disabled = sedangMemutuskan;
+          tolak.addEventListener('click', () => {
+            putuskan(item.id, 'tolak');
+          });
+
+          aksi.append(setujui, tolak);
+          kartu.append(aksi);
+        }
+
+        daftar.append(kartu);
+      }
+    }
+
+    async function muatDaftar() {
+      const data = await api(
+        '/api/pertemuan/' + pertemuanId + '/izin'
+      );
+
+      tampilkanDaftar(data.izin);
+      bagianDaftar.hidden = false;
+    }
+
+    async function putuskan(izinId, tindakan) {
+      if (sedangMemutuskan) return;
+
+      let catatan = null;
+
+      if (tindakan === 'tolak') {
+        const jawaban = window.prompt(
+          'Catatan penolakan (opsional, maksimal 500 karakter):',
+          ''
+        );
+
+        if (jawaban === null) return;
+
+        catatan = jawaban.trim() || null;
+
+        if (catatan && catatan.length > 500) {
+          beriPesan('Catatan maksimal 500 karakter.', 'error');
+          return;
+        }
+      }
+
+      sedangMemutuskan = true;
+      aturTombolPutusan(true);
+      beriPesan('Menyimpan putusan…');
+
+      let tersimpan = false;
+
+      try {
+        await api(
+          '/api/pertemuan/' + pertemuanId +
+          '/izin/' + izinId + '/' + tindakan,
+          {
+            method: 'POST',
+            body: JSON.stringify(
+              tindakan === 'tolak' ? { catatan } : {}
+            )
+          }
+        );
+
+        tersimpan = true;
+        await muatDaftar();
+
+        beriPesan(
+          tindakan === 'setujui'
+            ? 'Izin disetujui dan sudah masuk absensi.'
+            : 'Izin ditolak.'
+        );
+      } catch (error) {
+        beriPesan(
+          tersimpan
+            ? 'Putusan tersimpan, tetapi daftar belum dapat dimuat ulang. ' +
+              'Muat ulang halaman untuk melihat hasilnya.'
+            : error.message,
+          'error'
+        );
+      } finally {
+        sedangMemutuskan = false;
+        aturTombolPutusan(false);
+      }
+    }
+
+    salin.addEventListener('click', async () => {
+      let berhasil = false;
+
+      if (navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(linkIzin.value);
+          berhasil = true;
+        } catch {
+          // Lanjutkan ke fallback.
+        }
+      }
+
+      if (!berhasil) {
+        linkIzin.focus();
+        linkIzin.select();
+        linkIzin.setSelectionRange(0, linkIzin.value.length);
+
+        try {
+          berhasil = document.execCommand('copy');
+        } catch {
+          berhasil = false;
+        }
+      }
+
+      beriPesan(
+        berhasil
+          ? 'Link izin disalin.'
+          : 'Link belum dapat disalin otomatis. Salin teks pada kolom tautan.',
+        berhasil ? 'info' : 'error'
+      );
+    });
+
+    async function mulai() {
+      if (
+        !pertemuanId ||
+        !/^[1-9]\d*$/.test(pertemuanId) ||
+        !Number.isSafeInteger(Number(pertemuanId))
+      ) {
+        beriPesan('Buka halaman ini dari jadwal.', 'error');
+        return;
+      }
+
+      beriPesan('Memuat pengajuan izin…');
+
+      try {
+        await api('/api/me');
+
+        const data = await api(
+          '/api/pertemuan/' + pertemuanId + '/link-izin'
+        );
+
+        if (
+          typeof data.url !== 'string' ||
+          !/^\/izin\.html\?t=[a-f0-9]{32}$/.test(data.url)
+        ) {
+          throw new Error('Tautan izin dari server tidak valid.');
+        }
+
+        linkIzin.value = location.origin + data.url;
+        bagianLink.hidden = false;
+
+        await muatDaftar();
+        beriPesan('');
+      } catch (error) {
+        beriPesan(error.message, 'error');
+      }
+    }
+
+    mulai();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
