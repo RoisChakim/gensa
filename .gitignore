@@ -20,3 +20,6 @@ Thumbs.db
 # Arsip dan berkas sementara
 *.zip
 *.tmp
+
+# Prompt Codex — berkas kerja lokal, JANGAN push ke GitHub
+PROMPT_*.md
