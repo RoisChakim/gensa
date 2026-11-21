@@ -7,150 +7,13 @@
   <meta name="referrer" content="no-referrer">
   <title>Kelola izin — GENSA</title>
   <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/app.css">
   <style>
-    :root {
-      color-scheme: light;
-      --krem: #F6F1E9;
-      --coklat: #8A5A33;
-      --sage: #5F7A57;
-      --sage-muda: #7C9A6E;
-      --teks: #483B30;
-      --garis: #D8CDBE;
-      --putih: #FFFDFA;
-    }
-
-    * { box-sizing: border-box; }
-    [hidden] { display: none !important; }
-
-    body {
-      margin: 0;
-      background: var(--krem);
-      color: var(--teks);
-      font-family: system-ui, sans-serif;
-      line-height: 1.6;
-    }
-
-    main {
-      max-width: 850px;
-      margin: 0 auto;
-      padding: 24px 16px 48px;
-    }
-
-    h1, h2, h3 { color: var(--coklat); }
-    h1 { margin: 12px 0 8px; }
-    h2 { margin: 0 0 12px; font-size: 1.25rem; }
-    h3 { margin: 0 0 8px; font-size: 1.1rem; }
-    p { margin: 0 0 12px; }
-    a { color: var(--coklat); }
-
-    .kembali {
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-    }
-
-    .kartu {
-      background: var(--putih);
-      border: 1px solid var(--garis);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 16px;
-      overflow-wrap: anywhere;
-    }
-
-    label { display: block; font-weight: 600; margin-bottom: 6px; }
-
-    input, button { font: inherit; }
-
-    input {
-      display: block;
-      width: 100%;
-      min-height: 44px;
-      border: 1px solid var(--garis);
-      border-radius: 8px;
-      padding: 10px 12px;
-      background: var(--putih);
-      color: var(--teks);
-    }
-
-    button {
-      min-height: 44px;
-      border: 0;
-      border-radius: 8px;
-      padding: 10px 16px;
-      background: var(--coklat);
-      color: white;
-      cursor: pointer;
-    }
-
-    button.secondary { background: var(--sage); }
-    button:disabled { opacity: 0.6; cursor: wait; }
-
-    :focus-visible {
-      outline: 3px solid var(--sage-muda);
-      outline-offset: 3px;
-    }
-
-    .aksi {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    .keterangan { white-space: pre-wrap; }
-    #daftar { margin-top: 16px; }
-
-    #pesan {
-      margin: 16px 0;
-      padding: 12px 16px;
-      background: #ECEFE5;
-      border-left: 4px solid var(--sage);
-      border-radius: 8px;
-      overflow-wrap: anywhere;
-    }
-
-    #pesan[data-jenis="error"] {
-      background: #F2E5D9;
-      border-left-color: var(--coklat);
-    }
-
-    @media (max-width: 480px) {
-      .kartu { padding: 16px; }
-      .aksi button { width: 100%; }
-    }
-  
-/* Shell navigasi v1 (Sesi 12d) — menu + tampilan sama seperti demo v1 */
-.app-layout{display:flex;min-height:100vh}
-.app-layout > main{flex:1;min-width:0;max-width:none;margin:0;padding:26px 30px 60px}
-.sidebar{width:248px;flex:0 0 248px;background:#FBF7EE;border-right:1px solid #E9DFCE;padding:20px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
-.sidebar .brand-row{padding:2px 8px 14px;border-bottom:1px solid #E9DFCE;margin-bottom:14px}
-.brand-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.brand-logo{width:34px;height:42px;border-radius:10px;flex:0 0 34px;overflow:hidden;background:none}
-.brand-logo img{width:100%;height:100%;object-fit:cover;display:block}
-.brand-name{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:#2C2620}
-.brand-sub{font-size:12.5px;color:#7A6F61}
-.side-link{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#7A6F61;background:none;border:none;width:100%;text-align:left;font-size:14px;font-weight:600;text-decoration:none}
-.side-link .ic{font-size:17px;width:22px;text-align:center}
-.side-link:hover{background:rgba(124,154,110,.07);color:#2C2620}
-.side-link.active{background:rgba(124,154,110,.13);color:#5F7A57}
-.side-user{margin-top:auto;background:#FFFDF8;border:1px solid #E9DFCE;border-radius:12px;padding:12px}
-.side-user .nm{font-weight:700;font-size:13.5px;color:#2C2620}
-.side-user .rl{font-size:12px;color:#5F7A57}
-.side-user button{margin-top:9px;width:100%;background:none;border:1px solid #DCCFB6;color:#7A6F61;border-radius:8px;padding:7px;font-size:12.5px;font-weight:600}
-.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;flex-wrap:wrap}
-.title-row{display:flex;align-items:center;gap:10px}
-.topbar h2{font-size:24px;font-weight:800;letter-spacing:-.02em;color:#2C2620}
-.topbar .sub{color:#7A6F61;font-size:13.5px;margin-top:3px}
-.scope-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(124,154,110,.09);border:1px solid rgba(124,154,110,.3);color:#5F7A57;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700}
-.menu-btn{display:none;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;background:#FFFFFF;border:1px solid #DCCFB6;color:#2C2620;font-size:18px}
-@media (max-width:860px){
-  .sidebar{position:fixed;z-index:40;transform:translateX(-100%);transition:transform .25s}
-  .sidebar.open{transform:none}
-  .app-layout > main{padding:20px 16px 50px}
-  .menu-btn{display:inline-flex !important}
-}
-</style>
+    .keterangan{white-space:pre-wrap}
+    #daftar{margin-top:16px}
+    .kartu{padding:16px}
+    .aksi button{width:100%}
+  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -162,10 +25,12 @@
       </div>
       <a class="side-link" href="/dashboard.html"><span class="ic">▦</span> Dashboard</a>
       <a class="side-link" href="/generus.html"><span class="ic">👥</span> Daftar Generus</a>
+      <a class="side-link" id="kelasMenu" href="/kelas.html" hidden><span class="ic">☷</span> Kelas</a>
       <a class="side-link" href="/materi.html"><span class="ic">📖</span> Materi</a>
       <a class="side-link" href="/jadwal.html"><span class="ic">🗓</span> Jadwal Mengaji</a>
       <a class="side-link active" href="/izin-kelola.html"><span class="ic">✉️</span> Izin</a>
       <a class="side-link" href="/laporan.html"><span class="ic">💬</span> Laporan WhatsApp</a>
+      <a class="side-link" href="/arsip.html"><span class="ic">🗂</span> Arsip</a>
       <a class="side-link" href="/cetak-qr.html"><span class="ic">▣</span> Cetak QR Code</a>
       <a class="side-link" id="akunLink" href="/akun.html" hidden><span class="ic">⚙</span> Akun</a>
       <div class="side-user">
@@ -208,6 +73,193 @@
         </button>
       </div>
     </section>
+
+<section id="bagian-link-kelompok" class="kartu">
+  <h3>Link izin per kelompok</h3>
+  <p>
+    Satu tautan per kelompok, berlaku untuk kegiatan yang akan datang.
+  </p>
+
+  <div class="bidang">
+    <label for="pilihKelompok">Kelompok</label>
+    <select id="pilihKelompok" disabled>
+      <option value="">Memuat kelompok…</option>
+    </select>
+  </div>
+
+  <div class="bidang">
+    <label for="link-kelompok">Tautan izin kelompok</label>
+    <input
+      id="link-kelompok"
+      type="text"
+      readonly
+      autocomplete="off"
+      spellcheck="false"
+      aria-describedby="bantuan-link-kelompok"
+    >
+    <p id="bantuan-link-kelompok" class="bantuan">
+      Pilih kelompok, lalu tekan Salin untuk mendapatkan tautannya.
+    </p>
+  </div>
+
+  <div class="aksi">
+    <button id="salinKelompok" type="button" disabled>Salin</button>
+  </div>
+
+  <p
+    id="pesan-link-kelompok"
+    class="bantuan"
+    role="status"
+    aria-live="polite"
+    hidden
+  ></p>
+</section>
+
+<script>
+  (() => {
+    'use strict';
+
+    const pilih = document.getElementById('pilihKelompok');
+    const tautan = document.getElementById('link-kelompok');
+    const salin = document.getElementById('salinKelompok');
+    const pesanLink = document.getElementById('pesan-link-kelompok');
+
+    function beriPesanLink(teks) {
+      pesanLink.textContent = teks;
+      pesanLink.hidden = !teks;
+    }
+
+    async function ambilJson(path) {
+      const response = await fetch(path, {
+        method: 'GET',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { Accept: 'application/json' }
+      });
+
+      let data;
+
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Respons server tidak dapat dibaca.');
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          typeof data?.error === 'string' ? data.error :
+          typeof data?.message === 'string' ? data.message :
+          'Permintaan belum berhasil. Silakan coba lagi.'
+        );
+      }
+
+      return data;
+    }
+
+    function tambahOpsi(nilai, teks) {
+      const option = document.createElement('option');
+      option.value = nilai;
+      option.textContent = teks;
+      pilih.append(option);
+    }
+
+    async function muatKelompok() {
+      try {
+        // /api/wilayah mengembalikan kelompok dalam lingkup pengguna.
+        const data = await ambilJson('/api/wilayah');
+
+        if (!Array.isArray(data.kelompok)) {
+          throw new Error('Daftar kelompok tidak dapat dibaca.');
+        }
+
+        const daftar = data.kelompok;
+        pilih.replaceChildren();
+
+        if (daftar.length === 0) {
+          tambahOpsi('', 'Belum ada kelompok');
+          beriPesanLink('Belum ada kelompok dalam lingkup Anda.');
+          return;
+        }
+
+        if (daftar.length > 1) {
+          tambahOpsi('', 'Pilih kelompok');
+        }
+
+        for (const kelompok of daftar) {
+          tambahOpsi(String(kelompok.id), kelompok.nama);
+        }
+
+        // Pengguna kelompok menerima satu kelompok miliknya sendiri.
+        pilih.disabled = daftar.length === 1;
+        pilih.value = daftar.length === 1 ? String(daftar[0].id) : '';
+        salin.disabled = !pilih.value;
+      } catch (error) {
+        pilih.replaceChildren();
+        tambahOpsi('', 'Kelompok belum dapat dimuat');
+        pilih.disabled = true;
+        salin.disabled = true;
+        beriPesanLink(error.message);
+      }
+    }
+
+    pilih.addEventListener('change', () => {
+      tautan.value = '';
+      salin.disabled = !pilih.value;
+      beriPesanLink('');
+    });
+
+    salin.addEventListener('click', async () => {
+      const kelompokId = pilih.value;
+
+      if (!kelompokId || salin.disabled) return;
+
+      const pilihanSebelumnyaDisabled = pilih.disabled;
+      pilih.disabled = true;
+      salin.disabled = true;
+      salin.textContent = 'Menyalin…';
+      tautan.value = '';
+      beriPesanLink('');
+
+      try {
+        const data = await ambilJson(
+          '/api/kelompok/' +
+          encodeURIComponent(kelompokId) +
+          '/link-izin'
+        );
+
+        if (
+          typeof data.url !== 'string' ||
+          !/^\/izin\.html\?t=[a-f0-9]{32}$/.test(data.url)
+        ) {
+          throw new Error('Tautan izin tidak dapat dibaca.');
+        }
+
+        tautan.value = location.origin + data.url;
+
+        try {
+          await navigator.clipboard.writeText(tautan.value);
+          beriPesanLink('Tautan izin kelompok sudah disalin.');
+        } catch {
+          tautan.focus();
+          tautan.select();
+          beriPesanLink(
+            'Tautan sudah siap. Silakan salin dari kolom tautan.'
+          );
+        }
+      } catch (error) {
+        beriPesanLink(error.message);
+      } finally {
+        pilih.disabled = pilihanSebelumnyaDisabled;
+        salin.disabled = !pilih.value;
+        salin.textContent = 'Salin';
+      }
+    });
+
+    muatKelompok();
+  })();
+</script>
+
+<section id="bagian-daftar">
 
     <section id="bagian-daftar" hidden>
       <h2>Pengajuan izin</h2>
@@ -530,7 +582,8 @@
   var sidebar = document.getElementById('sidebar');
   var menuBtn = document.getElementById('menuBtn');
   var akunLink = document.getElementById('akunLink');
-  var roleLabels = { admin: 'Admin \u00b7 akses penuh', daerah: 'Daerah \u00b7 lihat semua', desa: 'Desa', kelompok: 'Kelompok' };
+  var kelasLink = document.getElementById('kelasMenu');
+  var roleLabels = { admin: 'Admin \u00b7 akses penuh', daerah: 'Daerah', desa: 'Desa', kelompok: 'Kelompok' };
   function setMenu(open) {
     if (!sidebar || !menuBtn) return;
     sidebar.classList.toggle('open', !!open);
@@ -559,6 +612,7 @@
       var role = document.getElementById('userRole'); if (role) role.textContent = label;
       var badge = document.getElementById('scopeBadge'); if (badge) badge.textContent = label;
       if (u.role === 'admin' && akunLink) akunLink.hidden = false;
+      if (u.role === 'admin' && kelasLink) kelasLink.hidden = false;
     })
     .catch(function () {});
 })();

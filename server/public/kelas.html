@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon-192.png">
+  <meta name="theme-color" content="#F6F1E9">
+  <title>Kelola Kelas — GENSA</title>
+  
+    <link rel="stylesheet" href="/app.css">
+  <style>
+    .kelas-group + .kelas-group{margin-top:24px}
+    .kelas-table-wrap{overflow-x:auto}
+    .kelas-table-wrap table{min-width:400px}
+    .kelas-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .field .checkbox-label{display:flex;align-items:center;gap:9px}
+    .field input[type="checkbox"]{width:auto;accent-color:var(--lime)}
+    #modalError{color:#A34A38;overflow-wrap:anywhere}
+    #kelasStatus{color:var(--muted);margin-bottom:12px}
+  </style>
+</head>
+<body>
+  <p id="startupStatus" role="status" aria-live="polite">Memuat kelas…</p>
+  <noscript>
+    <p class="empty">Aktifkan JavaScript untuk membuka kelas GENSA.</p>
+  </noscript>
+
+  <div id="appView">
+    <div class="app-layout">
+      <aside class="sidebar" id="sidebar" aria-label="Menu utama">
+        <button class="menu-btn sidebar-close" id="closeMenuBtn" type="button"
+          aria-label="Tutup menu">×</button>
+        <div class="brand-row">
+          <div class="brand-logo">
+            <img src="/icon-192.png" alt="Logo GENSA" width="34" height="42">
+          </div>
+          <div>
+            <div class="brand-name">GENSA</div>
+            <div class="brand-sub">Platform Manajemen Generus</div>
+          </div>
+        </div>
+
+        <a class="side-link" href="/dashboard.html">
+          <span class="ic" aria-hidden="true">▦</span> Dashboard
+        </a>
+        <a class="side-link" href="/generus.html">
+          <span class="ic" aria-hidden="true">👥</span> Daftar Generus
+        </a>
+        <a class="side-link active" id="kelasMenu" href="/kelas.html"
+          aria-current="page" hidden>
+          <span class="ic" aria-hidden="true">☷</span> Kelas
+        </a>
+        <a class="side-link" href="/materi.html">
+          <span class="ic" aria-hidden="true">📖</span> Materi
+        </a>
+        <a class="side-link" href="/jadwal.html">
+          <span class="ic" aria-hidden="true">🗓</span> Jadwal Mengaji
+        </a>
+        <a class="side-link" href="/izin-kelola.html">
+          <span class="ic" aria-hidden="true">✉️</span> Izin
+        </a>
+        <a class="side-link" href="/laporan.html">
+          <span class="ic" aria-hidden="true">💬</span> Laporan WhatsApp
+        </a>
+        <a class="side-link" href="/arsip.html">
+          <span class="ic" aria-hidden="true">🗂</span> Arsip
+        </a>
+        <a class="side-link" href="/cetak-qr.html">
+          <span class="ic" aria-hidden="true">▣</span> Cetak QR Code
+        </a>
+        <a class="side-link" id="accountMenu" href="/akun.html" hidden>
+          <span class="ic" aria-hidden="true">⚙</span> Akun
+        </a>
+
+        <div class="side-user">
+          <div class="nm" id="userName"></div>
+          <div class="rl" id="userRole"></div>
+          <button id="logoutBtn" type="button">Keluar</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <div class="title-row">
+              <button class="menu-btn" id="menuBtn" type="button"
+                aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+              <h2 id="pageTitle">Kelola Kelas</h2>
+            </div>
+            <div class="sub" id="pageSub">Struktur kelas per jenjang — diisi Admin.</div>
+          </div>
+          <span class="scope-badge" id="scopeBadge"></span>
+        </div>
+
+        <div id="errorBox" role="alert" aria-live="assertive" hidden></div>
+        <p class="card" id="adminOnly" hidden>Halaman ini hanya untuk Admin.</p>
+
+        <section id="kelasContent" aria-labelledby="pageTitle" hidden>
+          <div class="card">
+            <div class="toolbar">
+              <button class="btn btn-lime" id="addKelasBtn" type="button">
+                + Tambah Kelas
+              </button>
+            </div>
+            <p id="kelasStatus" role="status" aria-live="polite"></p>
+            <div id="kelasGroups" aria-busy="false"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-back" id="kelasModal">
+    <div class="modal" role="dialog" aria-modal="true"
+      aria-labelledby="kelasModalTitle" tabindex="-1">
+      <h3 id="kelasModalTitle">Tambah Kelas</h3>
+      <form id="kelasForm">
+        <div class="field">
+          <label for="kelasJenjang">Jenjang</label>
+          <select id="kelasJenjang" required>
+            <option value="caberawit">Caberawit</option>
+            <option value="pra_remaja">Pra Remaja</option>
+            <option value="remaja">Remaja</option>
+            <option value="usia_nikah">Usia Nikah</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="kelasNama">Nama kelas</label>
+          <input id="kelasNama" type="text" maxlength="100" required>
+        </div>
+
+        <div class="field">
+          <label for="kelasUrutan">Urutan</label>
+          <input id="kelasUrutan" type="number" min="0" max="9999"
+            step="1" value="0" required>
+        </div>
+
+        <div class="field">
+          <label class="checkbox-label" for="kelasAktif">
+            <input id="kelasAktif" type="checkbox" checked>
+            Aktif
+          </label>
+          <p class="hint" id="aktifHint">Kelas baru langsung aktif.</p>
+        </div>
+
+        <p id="modalError" role="alert" aria-live="assertive" hidden></p>
+
+        <div class="actions">
+          <button class="btn btn-ghost" id="cancelKelasBtn" type="button">Batal</button>
+          <button class="btn btn-lime" id="saveKelasBtn" type="submit">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  'use strict';
+
+  (() => {
+    const byId = id => document.getElementById(id);
+    const sidebar = byId('sidebar');
+    const menuBtn = byId('menuBtn');
+    const closeMenuBtn = byId('closeMenuBtn');
+    const narrow = window.matchMedia('(max-width:860px)');
+    const appView = byId('appView');
+    const modal = byId('kelasModal');
+    const form = byId('kelasForm');
+    const jenjangInput = byId('kelasJenjang');
+    const namaInput = byId('kelasNama');
+    const urutanInput = byId('kelasUrutan');
+    const aktifInput = byId('kelasAktif');
+    const saveBtn = byId('saveKelasBtn');
+    const cancelBtn = byId('cancelKelasBtn');
+
+    const jenjangLabels = [
+      ['caberawit', 'Caberawit'],
+      ['pra_remaja', 'Pra Remaja'],
+      ['remaja', 'Remaja'],
+      ['usia_nikah', 'Usia Nikah']
+    ];
+
+    let csrfToken = '';
+    let editingId = null;
+    let saving = false;
+    let returnFocus = null;
+    let isAdmin = false;
+
+    function showError(message) {
+      byId('errorBox').textContent = message || '';
+      byId('errorBox').hidden = !message;
+    }
+
+    function showModalError(message) {
+      byId('modalError').textContent = message || '';
+      byId('modalError').hidden = !message;
+    }
+
+    async function api(path, options = {}) {
+      const headers = new Headers(options.headers || {});
+      headers.set('Accept', 'application/json');
+
+      if (options.body !== undefined) {
+        headers.set('Content-Type', 'application/json');
+      }
+      if (csrfToken && options.method && options.method !== 'GET') {
+        headers.set('X-CSRF-Token', csrfToken);
+      }
+
+      const response = await fetch(path, {
+        ...options,
+        headers,
+        credentials: 'same-origin',
+        cache: 'no-store'
+      });
+
+      if (response.status === 401) {
+        window.location.replace('/');
+        throw new Error('Sesi berakhir. Silakan masuk kembali.');
+      }
+
+      let data = {};
+      if (response.status !== 204) {
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error('Respons server tidak dapat dibaca.');
+        }
+      }
+
+      if (!response.ok) {
+        const message = typeof data.error === 'string'
+          ? data.error
+          : typeof data.message === 'string'
+            ? data.message
+            : 'Permintaan belum berhasil.';
+        const error = new Error(message);
+        error.status = response.status;
+        throw error;
+      }
+
+      return data;
+    }
+
+    function setMenu(open, restoreFocus = false) {
+      const visible = narrow.matches && open;
+      sidebar.classList.toggle('open', visible);
+      menuBtn.setAttribute('aria-expanded', String(visible));
+      sidebar.inert = narrow.matches && !visible;
+
+      if (visible) closeMenuBtn.focus();
+      else if (restoreFocus && narrow.matches) menuBtn.focus();
+    }
+
+    menuBtn.addEventListener('click', () => {
+      setMenu(!sidebar.classList.contains('open'));
+    });
+    closeMenuBtn.addEventListener('click', () => setMenu(false, true));
+    narrow.addEventListener('change', () => setMenu(false));
+
+    document.addEventListener('click', event => {
+      if (
+        narrow.matches &&
+        sidebar.classList.contains('open') &&
+        !sidebar.contains(event.target) &&
+        !menuBtn.contains(event.target)
+      ) {
+        setMenu(false);
+      }
+    });
+
+    sidebar.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => setMenu(false));
+    });
+
+    function openModal(kelas = null, trigger = byId('addKelasBtn')) {
+      if (!isAdmin) return;
+
+      setMenu(false);
+      editingId = kelas ? kelas.id : null;
+      returnFocus = trigger;
+      form.reset();
+      showModalError('');
+
+      byId('kelasModalTitle').textContent = kelas ? 'Ubah Kelas' : 'Tambah Kelas';
+      jenjangInput.value = kelas ? kelas.jenjang : 'caberawit';
+      jenjangInput.disabled = Boolean(kelas);
+      namaInput.value = kelas ? kelas.nama : '';
+      urutanInput.value = kelas ? String(kelas.urutan) : '0';
+      aktifInput.checked = kelas ? kelas.aktif : true;
+
+      // POST kelas selalu membuat kelas aktif; checkbox tersedia saat mengubah.
+      aktifInput.disabled = !kelas;
+      byId('aktifHint').hidden = Boolean(kelas);
+
+      modal.classList.add('open');
+      appView.inert = true;
+      namaInput.focus();
+    }
+
+    function closeModal() {
+      if (saving) return;
+      modal.classList.remove('open');
+      appView.inert = false;
+      editingId = null;
+
+      if (returnFocus && returnFocus.isConnected) returnFocus.focus();
+      else byId('addKelasBtn').focus();
+    }
+
+    byId('addKelasBtn').addEventListener('click', () => openModal());
+    cancelBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', event => {
+      if (event.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (modal.classList.contains('open')) {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeModal();
+          return;
+        }
+
+        if (event.key === 'Tab') {
+          const focusable = Array.from(modal.querySelectorAll(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex="0"]'
+          )).filter(element => element.getClientRects().length > 0);
+
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+
+          if (!first) {
+            event.preventDefault();
+            return;
+          }
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
+      } else if (event.key === 'Escape') {
+        setMenu(false, true);
+      }
+    });
+
+    function renderKelas(kelas) {
+      const fragment = document.createDocumentFragment();
+
+      for (const [jenjang, label] of jenjangLabels) {
+        const section = document.createElement('section');
+        section.className = 'kelas-group';
+
+        const heading = document.createElement('h3');
+        heading.textContent = label;
+        heading.id = 'kelas-heading-' + jenjang;
+        section.setAttribute('aria-labelledby', heading.id);
+        section.appendChild(heading);
+
+        const rows = kelas.filter(item => item.jenjang === jenjang);
+
+        if (!rows.length) {
+          const empty = document.createElement('p');
+          empty.className = 'empty';
+          empty.textContent = 'Belum ada kelas.';
+          section.appendChild(empty);
+          fragment.appendChild(section);
+          continue;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'kelas-table-wrap';
+
+        const table = document.createElement('table');
+        table.setAttribute('aria-labelledby', heading.id);
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+
+        for (const title of ['Nama kelas', 'Urutan', 'Status', 'Tindakan']) {
+          const th = document.createElement('th');
+          th.scope = 'col';
+          th.textContent = title;
+          headerRow.appendChild(th);
+        }
+
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+
+        for (const kelas of rows) {
+          const row = document.createElement('tr');
+
+          const nameCell = document.createElement('td');
+          nameCell.textContent = kelas.nama;
+          row.appendChild(nameCell);
+
+          const orderCell = document.createElement('td');
+          orderCell.textContent = String(kelas.urutan);
+          row.appendChild(orderCell);
+
+          const statusCell = document.createElement('td');
+          const status = document.createElement('span');
+          status.className = kelas.aktif ? 'tag tag-hadir' : 'tag tag-absen';
+          status.textContent = kelas.aktif ? 'Aktif' : 'Nonaktif';
+          statusCell.appendChild(status);
+          row.appendChild(statusCell);
+
+          const actionCell = document.createElement('td');
+          const actions = document.createElement('div');
+          actions.className = 'kelas-actions';
+
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.className = 'btn btn-sm';
+          editBtn.textContent = 'Ubah';
+          editBtn.setAttribute('aria-label', 'Ubah kelas ' + label + ' ' + kelas.nama);
+          editBtn.addEventListener('click', () => openModal(kelas, editBtn));
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.className = 'btn btn-sm btn-danger';
+          deleteBtn.textContent = 'Hapus';
+          deleteBtn.setAttribute('aria-label', 'Hapus kelas ' + label + ' ' + kelas.nama);
+
+          deleteBtn.addEventListener('click', async () => {
+            if (!window.confirm('Hapus kelas ' + label + ' ' + kelas.nama + '?')) return;
+
+            deleteBtn.disabled = true;
+            editBtn.disabled = true;
+            showError('');
+
+            try {
+              await api('/api/kelas/' + kelas.id, { method: 'DELETE' });
+              await loadKelas();
+              byId('kelasStatus').textContent = 'Kelas berhasil dihapus.';
+            } catch (error) {
+              showError(error.status === 409 ? 'Kelas masih dipakai.' : error.message);
+            } finally {
+              deleteBtn.disabled = false;
+              editBtn.disabled = false;
+            }
+          });
+
+          actions.append(editBtn, deleteBtn);
+          actionCell.appendChild(actions);
+          row.appendChild(actionCell);
+          tbody.appendChild(row);
+        }
+
+        table.appendChild(tbody);
+        wrapper.appendChild(table);
+        section.appendChild(wrapper);
+        fragment.appendChild(section);
+      }
+
+      byId('kelasGroups').replaceChildren(fragment);
+    }
+
+    async function loadKelas() {
+      byId('kelasGroups').setAttribute('aria-busy', 'true');
+      byId('kelasStatus').textContent = 'Memuat kelas…';
+
+      try {
+        const data = await api('/api/kelas');
+        if (!Array.isArray(data.kelas)) throw new Error('Data kelas tidak valid.');
+        renderKelas(data.kelas);
+        byId('kelasStatus').textContent = '';
+      } catch (error) {
+        byId('kelasStatus').textContent = 'Daftar kelas belum berhasil dimuat.';
+        throw error;
+      } finally {
+        byId('kelasGroups').setAttribute('aria-busy', 'false');
+      }
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!isAdmin || saving || !form.reportValidity()) return;
+
+      const nama = namaInput.value.trim();
+      const urutan = Number(urutanInput.value);
+
+      if (!nama || nama.length > 100) {
+        showModalError('Isi nama kelas, maksimal 100 karakter.');
+        namaInput.focus();
+        return;
+      }
+      if (!Number.isInteger(urutan) || urutan < 0 || urutan > 9999) {
+        showModalError('Urutan harus berupa bilangan bulat 0–9999.');
+        urutanInput.focus();
+        return;
+      }
+
+      const id = editingId;
+      const body = id === null
+        ? { jenjang: jenjangInput.value, nama, urutan }
+        : { nama, urutan, aktif: aktifInput.checked };
+
+      saving = true;
+      saveBtn.disabled = true;
+      cancelBtn.disabled = true;
+      saveBtn.textContent = 'Menyimpan…';
+      showModalError('');
+      showError('');
+
+      try {
+        await api(id === null ? '/api/kelas' : '/api/kelas/' + id, {
+          method: id === null ? 'POST' : 'PATCH',
+          body: JSON.stringify(body)
+        });
+      } catch (error) {
+        showModalError(error.message);
+        return;
+      } finally {
+        saving = false;
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        saveBtn.textContent = 'Simpan';
+      }
+
+      closeModal();
+
+      try {
+        await loadKelas();
+        byId('kelasStatus').textContent = 'Kelas berhasil disimpan.';
+      } catch (error) {
+        showError('Kelas sudah disimpan. ' + error.message);
+      }
+    });
+
+    byId('logoutBtn').addEventListener('click', async () => {
+      const button = byId('logoutBtn');
+      button.disabled = true;
+      showError('');
+
+      try {
+        await api('/api/logout', {
+          method: 'POST',
+          body: JSON.stringify({})
+        });
+        window.location.replace('/');
+      } catch (error) {
+        showError(error.message);
+        button.disabled = false;
+      }
+    });
+
+    async function start() {
+      setMenu(false);
+
+      try {
+        const me = await api('/api/me');
+        const user = me.user;
+        if (!user || typeof user.role !== 'string') {
+          throw new Error('Data akun tidak dapat dibaca.');
+        }
+
+        // Cocokkan nama field/header dengan kontrak CSRF dashboard yang asli.
+        const token = me.csrfToken ?? me.csrf_token;
+        csrfToken = typeof token === 'string' ? token : '';
+
+        if (user.must_change_password) {
+          window.location.replace('/');
+          return;
+        }
+
+        const roleLabels = {
+          admin: 'Admin',
+          daerah: 'Daerah',
+          desa: 'Desa',
+          kelompok: 'Kelompok'
+        };
+
+        isAdmin = user.role === 'admin';
+        byId('userName').textContent = user.email || '';
+        byId('userRole').textContent = roleLabels[user.role] || user.role;
+        byId('scopeBadge').textContent = isAdmin ? 'Semua jenjang' : 'Akses terbatas';
+        byId('kelasMenu').hidden = !isAdmin;
+        byId('accountMenu').hidden = !isAdmin;
+        byId('kelasContent').hidden = !isAdmin;
+        byId('adminOnly').hidden = isAdmin;
+
+        appView.style.display = 'block';
+        byId('startupStatus').hidden = true;
+
+        if (isAdmin) await loadKelas();
+      } catch (error) {
+        if (appView.style.display === 'block') showError(error.message);
+        else byId('startupStatus').textContent = error.message;
+      }
+    }
+
+    start();
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+  })();
+  </script>
+</body>
+</html>

@@ -4,10 +4,12 @@ const CORE = [
   '/login.html',
   '/dashboard.html',
   '/generus.html',
+  '/kelas.html',
   '/akun.html',
   '/jadwal.html',
   '/cetak-qr.html',
   '/laporan.html',
+  '/arsip.html',
   '/scan.html',
   '/materi.html',
   '/reset-password.html',
@@ -15,6 +17,7 @@ const CORE = [
   '/icon-192.png',
   '/icon-512.png',
   '/jsQR.js',
+  '/app.css',
 ];
 
 self.addEventListener('install', (event) => {

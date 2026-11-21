@@ -4,9 +4,579 @@
 > sesi. Tujuannya: lanjut kerja tanpa baca ulang semua file (hemat token)
 > dan progres tidak hilang walau kena limit.
 
-## Status sekarang (2026-11-21 ~10:00 WIB)
+## Status sekarang (2026-11-21 ~20:10 WIB)
 
-- **SESI 12 BERJALAN (2026-11-21, atas perintah pemilik "semua harus jadi
+- **13H (MVC) — SELESAI 2026-11-21 ~20:10 WIB.** `server/index.js`
+  5.528 → **23 baris** (bootstrap saja). Struktur akhir:
+  `server/config.js` (91); `server/middleware/` errors (38),
+  validate (154), http (187), auth (143); `server/models/` scope
+  (130), notifikasi (19), izin (60), laporan (483), penilaian
+  (161); `server/controllers/` auth (620), generus (792), wilayah
+  (321), notifikasi (98), pertemuan (1.167), tugas (302), laporan
+  (213), izinPublik (282), statis (75); `server/routes/index.js`
+  (473, dispatcher `handle()`). `server/public/` TIDAK disentuh.
+  Perilaku API TIDAK berubah; semua smoke test lolos TANPA diubah.
+  Regresi penuh akhir: S13D, S7, S13, S8, S3, S4, S5, S6, S9, S13A,
+  S13B, S13E, S14C, S14D, S14E, S10, S13C, S14A, S12 SEMUA LULUS;
+  S2 12/15 = caveat lama (3 FAIL akumulasi data tes Kelompok
+  Contoh B), BUKAN regresi. Langkah L1–L10 oleh Codex
+  (`gpt-6-astra`, `xhigh`, sesi BARU tiap langkah, prompt via stdin
+  + lampiran verbatim, apply SEKALI via `apply14.py`); **L11
+  dikerjakan MANUAL oleh Muse** — Codex kena limit pemakaian
+  ("try again at 3:10 PM", 2026-11-21 20:00 WIB), jadi
+  `server/routes/index.js` + bootstrap dibangun skrip
+  `.codex-out/build-l11-manual.py` dari `server/index.js` saat itu,
+  lalu diverifikasi: `handle()` baru == backup kecuali 2 blok
+  inline yang diganti pemanggilan `unduhLaporan`/`unduhNilai`;
+  blok require == backup dgn `./` → `../`; bootstrap == backup
+  verbatim; `node --check` semua file OK; server hidup
+  (GET / → 302, /api/me → 401, /login.html → 200). **Yang
+  TERSISA: push ke GitHub (tugas Muse utama, BUKAN subagent 13H)**
+  — Sesi 13+14+UI login+13H, tanpa PROMPT_*.md/rahasia; deploy
+  Vercel tetap DITUNDA perintah pemilik ("nanti / ngga besok").
+  Perhatian: 2 komentar yatim (`// getMateriTugas — diubah...`,
+  `// createTugas — diubah...`) kini ada di `server/index.js`
+  DAN ikut tersalin ke `server/controllers/laporan.js` (lampiran
+  L10 memuatnya) — kosmetik saja, bukan bug.
+  Gotcha baru 13H (catat untuk sesi berikut): (a) `pkill -f
+  "node [i]ndex.js"` TIDAK membunuh `node ./server/index.js` —
+  matikan server via PID file (`.codex-out/srv.sh`); (b) defect
+  CARI Codex: baris kosong sebelum `function` kadang ditambah/
+  dikurangi Codex → apply skip blok itu, hapus manual dgn teks
+  persis setelah cek hitungan 1× (terjadi L1 blok27, L2 blok06–08,
+  L9 blok04); (c) generator `mvc-prompt.py` sempat 2× cacat —
+  string mentah `unduhLaporan` L10 kehilangan `if (` + satu `}`
+  (diperbaiki, lalu prompt divalidasi `node --check` SEBELUM
+  Codex jalan), dan `func_span('handle')` L11 terpotong di baris
+  `const deleteTugasMatch` kolom 0 di dalam `handle()` (diperbaiki
+  dgn span eksplisit sampai `const server =`); (d) `.env` TIDAK
+  punya `GOOGLE_CLIENT_ID` — S8 butuh dummy env di proses tes
+  (`run-tests.sh` sudah diperbaiki); (e) S14A meninggalkan
+  pertemuan daerah selesai (id 353 + 462 absensi) — SUDAH
+  dibersihkan setelah regresi penuh; jalankan S4/S14C SEBELUM S14A
+  atau bersihkan setelahnya.
+- **SESI 13 BERJALAN (2026-11-21, atas perintah pemilik "Lengkapi semua
+  pakai astra 6.2 high performance").** Tidak ada model "6.2" di Codex —
+  dipakai `gpt-6-astra` reasoning `xhigh` (satu tingkat di atas `high`
+  Sesi 12). Sesi BARU per perbaikan, prompt lengkap dgn konteks inline
+  (Codex TIDAK BISA baca/tulis file langsung — output ditangkap `-o`
+  ke `.codex-out/`, Muse yang menulis file + migrasi + tes).
+  Urutan: fitur sisa dulu (13A–13G), perbaikan tampilan (13F)
+  SELESAI 2026-11-21 ~13:33 WIB, lalu refactor MVC (13H) PALING
+  AKHIR. Bila token menipis, fitur didahulukan, MVC dicatat sebagai
+  tugas berikut.
+  - **13A SELESAI — Struktur kelas + riwayat kelas + tugas per
+    kelas/tahun (M7, M8, M9).** Codex `gpt-6-astra` + `xhigh`,
+    1 panggilan (~11,5 menit), prompt `PROMPT_S13A_KELAS.md`,
+    output `.codex-out/s13a.txt` (16 blok). Diterapkan + diperbaiki
+    Muse (lihat catatan di bawah):
+    - Migrasi `server/migrations/008_kelas.sql`: tabel `kelas`
+      (id, jenjang, nama, urutan, aktif, UNIQUE jenjang+nama) +
+      seed 15 kelas (caberawit AUD/A–F, pra remaja A–C, remaja A–C,
+      usia nikah A–B); tabel `riwayat_kelas` (generus_id ON DELETE
+      CASCADE, kelas_lama, kelas_baru, diubah_oleh); kolom
+      `generus.kelas_id`, `tugas.kelas_id`, `tugas.tahun_ajaran`
+      (2000–2100).
+    - Endpoint baru: GET/POST /api/kelas, PATCH/DELETE
+      /api/kelas/:id (Admin saja; duplikat 409; hapus kelas terpakai
+      409), PATCH /api/generus/:id (kelompok saja, generus approved
+      saja — ubah kelas + data ortu, catat riwayat bila kelas
+      berubah), GET /api/generus/:id/riwayat-kelas (lingkup peran).
+    - createGenerus + ajukanUlangGenerus terima `kelas_id`
+      (validasi: kelas ada + aktif + jenjang cocok; kelas_sekolah
+      diisi dari nama kelas). Teks bebas `kelas_sekolah` tetap
+      diterima bila `kelas_id` tidak dikirim (klien lama).
+      Ajukan ulang mencatat riwayat bila kelas berubah.
+    - createTugas terima `kelas_id` + `tahun_ajaran`; listTugas +
+      listPenilaian terima filter `?kelas_id=&tahun_ajaran=&kategori=`
+      (helper baru `parseTugasFilters(req)`); listGenerus kembalikan
+      `kelas_id` + `kelas_nama`.
+    - Halaman baru `server/public/kelas.html` (Admin saja; CRUD
+      kelas per jenjang + filter; shell v1; menu "Kelas" di sidebar
+      SETELAH "Daftar Generus" di SEMUA halaman, hanya tampil bila
+      Admin). `generus.html`: input kelas jadi dropdown per tingkat
+      (muat dari /api/kelas), tombol "Riwayat kelas" di baris
+      generus approved (modal). `materi.html`: field kelas + tahun
+      di form tugas, filter kelas/tahun di atas daftar, keterangan
+      kelas/tahun di tiap baris tugas. `sw.js` CORE tambah
+      `/kelas.html`.
+    - **Perbaikan Muse atas output Codex (penting — Codex tidak
+      punya konteks repo):** (a) body JSON dibaca pakai helper
+      `readJson`/`readMateriBody` yang sudah ada (bukan parser
+      inline); (b) batas panjang nama/ortu disamakan dgn fungsi
+      asli (200/200/100 — Codex memakai 150/150/50, lebih ketat);
+      (c) tanggal lahir pakai `validDate()`; (d) ajukan-ulang
+      gagal tetap 409 (bukan 404) seperti aslinya; (e) listGenerus
+      pertahankan tanda tangan `(res, auth, url)` + STATUSES +
+      ORDER BY id; (f) rute kelas dipindah ke SETELAH gerbang
+      `must_change_password` (awalnya sebelum gerbang — pengguna
+      yang belum ganti password bisa menulis kelas); (g) rute
+      GET /api/tugas ganda TIDAK ditambah (rute lama sudah
+      memanggil listTugas); (h) createGenerus/ajukanUlangGenerus
+      RETURNING dikembalikan ke daftar kolom eksplisit + kelas_id
+      (Codex pakai RETURNING * → qr_token tampil `null`, tes S1
+      mengharapkan `undefined` — 3 pemeriksaan S1 sempat gagal
+      karena ini, sudah diperbaiki); (i) tes S13 diperbarui:
+      daftar MENU + SEMUA_HALAMAN tambah `/kelas.html`.
+    - Smoke test baru `server/smoke-test-s13a.js` (9 pemeriksaan)
+      LULUS 9/9. Regresi penuh 2026-11-21 ~12:30 WIB: S1 11/11,
+      S3 11/11, S4 8/8, S5 7/7, S6 7/7, S7 6/6, S9 10/10, S10 16/16,
+      S12 8/8, S13 8/8, S13A 9/9 LULUS. S2 12/15 (3 gagal = caveat
+      lama data tes menumpuk, bukan regresi). S8 7/8 (1 gagal =
+      server .env tanpa GOOGLE_CLIENT_ID → /api/auth/google 503,
+      butuh kredensial asli dari pemilik — bukan regresi).
+      Urutan jalankan tes: S12 PALING AKHIR sebelum S10 (R2), atau
+      tunggu 60 detik; S1 butuh flag `must_change_password` admin
+      = true sebelum jalan (tes S1 sendiri yang menurunkannya —
+      kalau lupa, login lulus tapi assert flag gagal).
+    - **Insiden VM diganti di tengah Sesi 13A (~12:10 WIB):**
+      Docker + psql hilang (apt terhapus). Dipulihkan: Docker
+      restart #9 (`start-docker.sh`, 6 container Up, postgres
+      ready), server GENSA dinyalakan ulang. `psql` BELUM
+      terinstal ulang — apt masih dikunci proses replay OS-intent
+      boot (pid 807, `apt-get update`); instal ulang
+      `postgresql-client-16` setelah lock bebas (atau biarkan
+      replay yang memulihkannya). Backup cron 03:00 mungkin
+      gagal sampai psql ada lagi.
+  - **13B SELESAI 2026-11-21 ~13:20 WIB — Notifikasi hasil pengajuan
+    (M5) + catatan tolak hapus terpisah (D9).** Codex `gpt-6-astra` +
+    `xhigh`, 1 panggilan (~5,5 menit) setelah 1 penolakan awal —
+    Codex MENOLAK dulu karena prompt hanya berisi ringkasan fungsi;
+    diperbaiki dengan lampiran verbatim (fungsi ringkasan, 4 fungsi
+    keputusan, potongan dashboard/generus) lalu jalan. Pelajaran:
+    prompt yang menulis ulang fungsi WAJIB melampirkan kode asli
+    verbatim (13C/13D sudah dilengkapi lampiran yang sama).
+    Migrasi `009_notifikasi.sql`: tabel `notifikasi` (user_id,
+    jenis 4 nilai, generus_id TANPA FK, generus_nama snapshot,
+    judul, pesan, dibaca, created_at; index user/dibaca/tanggal) +
+    `generus.catatan_tolak_hapus`. Helper `buatNotifikasi(client,
+    ...)`; 4 fungsi keputusan kini membuat notifikasi ke
+    `requested_by`; endpoint baru GET /api/notifikasi
+    (?belum_dibaca=1, ?batas= maks 50), GET
+    /api/notifikasi/belum-dibaca, POST /api/notifikasi/:id/baca,
+    POST /api/notifikasi/baca-semua; `ringkasan` tambah
+    `notifikasi_belum_dibaca`. Dashboard: tombol lonceng + kartu
+    Pemberitahuan (maks 5, "Lihat semua" → 20, tandai dibaca per
+    item/semua). Halaman generus: banner notifikasi (hanya jenis
+    generus_* yang belum dibaca). D9: rejectDelete kini menulis ke
+    `catatan_tolak_hapus`, alasan_penolakan tidak lagi ditimpa
+    (ajukan-ulang tetap membersihkan alasan_penolakan lama — benar).
+    Smoke test `server/smoke-test-s13b.js` **9/9 LULUS** (M5 setuju/
+    tolak, D9 dua varian, hapus ber-riwayat + notifikasi, baca,
+    isolasi antar pengguna, validasi, halaman). Regresi penuh
+    2026-11-21 ~13:15 WIB: S1 11/11, S3 11/11, S4 8/8, S5 7/7,
+    S6 7/7, S7 6/6, S8 8/8 (server dijalankan dgn dummy
+    GOOGLE_CLIENT_ID/SECRET), S9 10/10, S10 16/16, S12 8/8,
+    S13 8/8, S13A 9/9, S13B 9/9 — semua LULUS. S2 12/15 (3 gagal =
+    caveat data tes lama, bukan regresi). Catatan tes: S13B
+    mengembalikan password admin ke ADMIN_PASSWORD (seperti S1)
+    supaya bisa diulang; S12/S13/S13A masih memakai password acak
+    (run ulang butuh reset password admin di DB dulu). Server
+    dimatikan setelah tes (port 3101 bebas).
+  - **13C SELESAI 2026-11-21 ~13:45 WIB — Link izin per kelompok
+    (D3) + tanpa nama sebelum verifikasi kode (R3).** Codex
+    `gpt-6-astra` + `xhigh`, 1 panggilan (~5 menit; lampiran
+    verbatim mencegah penolakan seperti 13B). Migrasi
+    `010_izin_kelompok.sql`: `kelompok.izin_token TEXT UNIQUE`.
+    Helper `pertemuanDariToken(token)` (token pertemuan dulu,
+    lalu token kelompok -> kegiatan terdekat tanggal >= hari ini,
+    belum selesai, dalam lingkup kelompok/desa/daerah; bila tidak
+    ada -> 404 'Belum ada kegiatan yang akan datang.'); endpoint
+    baru GET /api/kelompok/:id/link-izin (lingkup: admin/daerah
+    semua, desa desanya, kelompok miliknya; token dibuat malas
+    10x percobaaan) + POST /api/izin/verifikasi (rate limit R2
+    yang sama, kode dulu -> satu generus {id, nama,
+    kelas_sekolah}); `muatIzinPublik` kini TIDAK mengirim daftar
+    nama (R3); `kirimIzin` ditulis ulang via pertemuanDariToken
+    dgn validasi + pesan yang sama; token pertemuan LAMA tetap
+    jalan. `izin.html` ditulis ulang (alur verifikasi dulu, scan
+    jsQR dipertahankan, manifest + SW tetap); `izin-kelola.html`
+    tambah kartu link per kelompok (pilih kelompok -> salin).
+    Koreksi Muse saat menerapkan: jangkar block09 salah (file
+    asli memakai `<section id="bagian-daftar" hidden>`) +
+    tambah CSS select/.bidang/.bantuan yang dipakai kartu baru.
+    Smoke test `server/smoke-test-s13c.js` **8/8 LULUS**. Catatan
+    tes: kelompok tes ditaruh di Desa Contoh 2 (Desa 3 punya
+    pertemuan desa hari ini yang akan merusak asumsi 'terdekat');
+    tes memakai 8 dari 10 jatah POST /api/izin per menit — jangan
+    jalankan berurutan dgn S10/S12 tanpa jeda 60 dtk.
+  - **13D SELESAI 2026-11-21 ~14:15 WIB — Email reset via SMTP
+    (M4) + tanpa tautan reset di console bila SMTP diatur (R4) +
+    Admin ubah nilai tanpa reset count (D2).** Codex
+    `gpt-6-astra` + `xhigh`, 2 panggilan: pertama DITOLAK
+    (471 byte — minta 6 potongan: requireRole, router ringkasan,
+    SELECT listPenilaian, package.json, init akun.html,
+    renderScores materi.html); setelah lampiran dilengkapi,
+    panggilan ke-2 jalan (~2,5 menit). Migrasi
+    `011_penilaian_admin.sql`: `penilaian.diubah_oleh_admin
+    BOOLEAN DEFAULT false`. Konstanta SMTP + peringatan startup
+    bila belum dikonfigurasi; helper `kirimEmailReset(email,
+    link)` (tidak pernah throw; error SMTP hanya dicatat generik
+    — tanpa bocor tautan); requestReset memanggilnya dan HANYA
+    menulis tautan ke log bila SMTP BELUM dikonfigurasi
+    (catatan: bila SMTP sudah diatur tapi kirim gagal, tautan
+    TIDAK ditulis ke log — lebih ketat dari prompt, demi R4);
+    savePenilaian: Admin tidak lagi me-reset diubah_count
+    (tetap), set diubah_oleh_admin=true; listPenilaian SELECT
+    tambah diubah_oleh_admin; endpoint baru GET /api/sistem
+    (admin; {smtp_terkonfigurasi, google_terkonfigurasi});
+    package.json + nodemailer ^7.0.0 (`npm install` OK, v7.0.13);
+    .env.example + DEPLOY-VERCEL.md (bagian SMTP); akun.html
+    peringatan SMTP (fetch /api/sistem); materi.html penanda
+    '(diubah Admin)' di samping nilai. Smoke test
+    `server/smoke-test-s13d.js` **5/5 LULUS**; S6 diperbarui
+    ke perilaku D2 baru dan **lulus**; S7 (alur reset penuh via
+    log) **lulus**; log server memuat 2 tautan reset (fallback
+    jalan). Pengiriman email ASLI belum diuji — butuh kredensial
+    SMTP pemilik (Gmail App Password). Peringatan startup SMTP
+    terverifikasi di log server.
+  - **13E SELESAI 2026-11-21 ~14:40 WIB — Arsip/retensi 1 bulan
+    (M10).** Codex `gpt-6-astra` + `xhigh`, 2 panggilan: pertama
+    DITOLAK (753 byte — minta definisi tabel pertemuan/absensi/
+    penilaian/izin, pertemuanScopeWhere, blok router laporan,
+    contoh hitungLaporan, JS dashboard); setelah lampiran 39 KB
+    ditambahkan, panggilan ke-2 jalan (~5,5 menit). TIDAK ada
+    migrasi baru. Endpoint baru GET /api/arsip (daftar bulan
+    utuh >1 bulan dgn hitungan pertemuan/absensi/penilaian/izin,
+    lingkup peran) + GET /api/arsip/bulan?bulan=YYYY-MM (rincian
+    via hitungLaporan, 404 bila belum terarsip). Aturan bulan:
+    tanggal < awal bulan lalu (mis. 21 Nov 2026 -> arsip sampai
+    Sep 2026; Oktober belum). Halaman baru `server/public/
+    arsip.html` (keluarga CSS v1, menu Arsip setelah Laporan
+    WhatsApp). Koreksi Muse: tambah menu Kelas di arsip.html +
+    menu Arsip di 10 halaman lain + /arsip.html ke sw.js.
+    Smoke test `server/smoke-test-s13e.js` **6/6 LULUS**.
+    Keputusan retensi didokumentasikan: TIDAK ada hapus otomatis.
+  - **13G SELESAI 2026-11-21 ~14:50 WIB — perbaikan rate limit
+    requestReset (temuan audit).** Edit langsung Muse (bukan
+    Codex): Map `resetAttempts` + `checkResetRateLimit(req,
+    email)` — maks 5/jam per email, 10/jam per IP, dipanggil
+    sebelum query DB; respons tetap ok:true. Uji di S13D
+    (6/6 LULUS, termasuk check baru '5 pertama 200, ke-6 429');
+    S7 tetap lulus. Sisa audit 13G: rate limit di memori
+    (hilang saat restart, per-instans di serverless) + limit
+    login per-email — didokumentasikan, tidak diperbaiki.
+  - **13D SIAP — Email reset via SMTP (M4) + tanpa tautan reset di
+    console bila SMTP sudah diatur (R4) + Admin ubah nilai tanpa
+    reset count (D2).** Prompt `PROMPT_S13D_SMTP.md` sudah ditulis.
+    Butuh `npm install nodemailer` di `server/` saat menerapkan.
+  - **13E SIAP — Arsip/retensi 1 bulan (M10).** Prompt
+    `PROMPT_S13E_ARSIP.md` sudah ditulis. Keputusan: TIDAK ada hapus
+    otomatis — halaman Arsip mengelompokkan data >1 bulan per bulan
+    (rekap + rincian, pakai hitungLaporan), bisa dilihat kembali.
+  - **13G — Audit item R (Muse, BUKAN Codex).** Daftar rinci R1–R24
+    dari review S11 HILANG bersama `/tmp/codex-s11.txt` (VM diganti;
+    STATE.md hanya mencatat R2/R3/R4/R6/R7/R8/R9). Codex tidak bisa
+    membaca repo, jadi audit R dikerjakan Muse langsung dgn membaca
+    `server/index.js` (2026-11-21 ~13:30 WIB, saat 13C berjalan).
+    **Terverifikasi BAGUS:** semua query berparameter (0 interpolasi
+    `${}` di query); sesi HttpOnly + SameSite=Lax + Secure saat
+    HTTPS, token 64-hex, didukung DB (12 jam, dicabut saat logout/
+    ganti password); login dibatasi 5 gagal/email/15 menit; POST
+    /api/izin 10/menit/IP (R2); cek Origin di semua non-GET (CSRF);
+    readJson membatasi Content-Type + 100 KB; serveStatic anti
+    path-traversal (realpath + whitelist ekstensi + CSP); gate
+    must_change_password setelah /api/me + /api/change-password;
+    helper lingkup dipakai konsisten (canManagePertemuan,
+    generusScopeWhere, pertemuanScopeWhere, tugasScopeWhere);
+    R7 BAGUS — absen/sync/manual + qrSvg hanya untuk generus
+    approved (generusInScope); changePassword minta password lama,
+    bcrypt 12, mencabut semua sesi; token reset HMAC 1 jam +
+    fingerprint password_hash + nonce, respons selalu ok:true
+    (tanpa enumerasi akun); error 500 generik (tanpa bocor detail).
+    Status R: R2/R6/R8 SELESAI (S12), R3 di 13C, R4 di 13D,
+    R5 caveat data tes S2 (bukan bug), R7/R9 BAGUS.
+    **Satu temuan BARU yang bisa diperbaiki di kode: requestReset
+    TIDAK punya rate limit** — spam permintaan reset bisa membanjiri
+    log (sekarang) dan email (setelah SMTP 13D jalan). Perbaiki
+    SETELAH 13D diterapkan (13D menulis ulang requestReset — jangan
+    bentrok): batasi per email + per IP, pola sama seperti
+    loginFailures. **Keterbatasan yang didokumentasikan (bukan
+    diperbaiki sekarang):** semua rate limit di Map memori — hilang
+    saat restart dan per-instans di serverless Vercel (batas jadi
+    lebih longgar di sana); limit login per-email, bukan per-IP
+    (penyemprotan banyak email masih mungkin 5x per email —
+    dampak rendah karena bcrypt + pesan generik). **Butuh pemilik:**
+    kredensial Google OAuth (S8), kredensial SMTP (M4/13D), Neon +
+    Vercel (M11), ikon PWA di GitHub (upload via web UI).
+    Perbaikan rate limit requestReset dicatat sebagai tugas 13G
+    pasca-13D (bukan Codex — edit langsung Muse, kecil).
+  - **13F SELESAI 2026-11-21 ~13:33 WIB — Perbaikan tampilan
+    ("jangan AI slop", perintah pemilik 2026-11-21 ~11:57 WIB).**
+    Dikerjakan langsung Muse (BUKAN Codex — Muse bisa membaca semua
+    halaman, Codex butuh puluhan KB CSS verbatim). Hasil: SATU
+    stylesheet bersama `server/public/app.css` (18 KB, 211 aturan)
+    menggantikan 14 blok `<style>` inline yang isinya beda-beda
+    (dashboard/generus/akun/kelas/arsip keluarga v1 dgn Plus Jakarta
+    Sans; 9 halaman lain gaya sendiri system-ui + nama var berbeda).
+    Semua halaman kini menautkan `/app.css` (tepat 1 link/halaman)
+    + gaya kecil halaman HANYA untuk aturan yang benar-benar
+    spesifik (generus, akun, kelas, materi, laporan, cetak-qr,
+    scan, izin, izin-kelola; dashboard/arsip/jadwal/login/
+    reset-password tanpa gaya inline). Isi app.css: token v1 +
+    alias var lama (`--brown/--coklat/--sage/--cream/--krem/
+    --border/--garis/--paper/--putih/--teks`) supaya aturan halaman
+    yang dipertahankan tetap jalan; tipografi rapi (h1 22px/800,
+    h2 20px/800, topbar 24px); kartu + statistik bayangan lembut
+    (`--shadow`); tombol min 44px; `.table-wrap` scroll horizontal
+    + border; `.message:empty` disembunyikan (kotak pesan kosong di
+    login sempat terlihat); responsif @860px (sidebar off-canvas +
+    tombol hamburger) + @480px (padding rapat, stat 2 kolom, tombol
+    aksi full-width, tabel font 13px). `sw.js` CORE tambah
+    `/app.css` (PWA tetap bisa offline). TIDAK ada perubahan fungsi
+    — hanya tampilan. Verifikasi visual: screenshot Chrome 159
+    desktop 1280×900 (9 halaman incl. login) + mobile 360×800
+    (8 halaman) — dashboard/generus/materi/scan/login dibaca
+    langsung, rapi, tanpa overflow horizontal; ZIP di
+    `~/workspace/your_files/Screenshot_GENSA_13F_Desktop.zip`
+    (767 KB) + `Screenshot_GENSA_13F_Mobile.zip` (287 KB).
+    Catatan: perangkat yang sudah install PWA akan melihat gaya
+    lama sampai service worker memperbarui cache (CACHE_NAME tetap
+    `gensa-v2`, tapi sw.js baru memicu install ulang + cache ulang
+    CORE). Skrip screenshot diperbaiki (`~/workspace/gensa-shot.js`
+    + `gensa-shot-mobile.js`: login pakai password saat ini
+    `GensaAdmin2026!`, guard `change-form` null).
+    **Regresi penuh pasca-13F (2026-11-21 ~13:30 WIB, server tes
+    dimatikan setelahnya, port 3101 bebas):** S1 11/11, S3 11/11,
+    S4 8/8, S5 7/7, S6 7/7, S7 6/6, S8 8/8 (dgn dummy
+    GOOGLE_CLIENT_ID/SECRET), S9 10/10, S10 16/16, S12 8/8, S13
+    8/8, S13A 9/9, S13B 9/9, S13C 8/8, S13D 6/6, S13E 6/6 — SEMUA
+    LULUS. S2 12/15 — 3 gagal SAMA seperti sebelum 13F (caveat lama
+    data tes menumpuk, BUKAN regresi 13F: penutupan menandai 22 alfa
+    vs 2 yang diharapkan karena generus approved menumpuk di
+    Kelompok Contoh B; 2 gagal lain adalah efek berantai — koreksi
+    404 karena baris alfa berlebih, daftar pertemuan kehilangan
+    pertemuanKedua karena check penutupan abort sebelum membuatnya).
+    **Dua tes lama diperbarui (bukan kode) karena sudah kedaluwarsa
+    oleh 13C/13E, baru ketahuan saat regresi 13F:** (a) S10 — 2 cek
+    GET /api/izin masih mengharapkan daftar nama (perilaku pra-13C);
+    diubah ke perilaku R3: tanpa nama/kode sebelum verifikasi
+    (assert `generus === undefined` + nama/kode/qr_token tidak
+    bocor); (b) S13 — daftar MENU belum memuat `/arsip.html`
+    (menu baru 13E); ditambahkan setelah `/laporan.html`. Awalnya
+    S10 sempat 5 gagal saat dijalankan 3× berdekatan — itu efek
+    rate limit R2 (10 POST /api/izin per menit per IP), bukan bug;
+    setelah jeda 65 detik S10 lulus 16/16. Gotcha urutan tes tetap
+    berlaku: S12 paling akhir / jeda 60 detik sebelum S10/S13C;
+    S13D butuh jeda dgn S7 (budget reset 10/jam/IP); S1 butuh reset
+    flag `must_change_password` admin sebelum jalan; S12/S13/S13A
+    mengubah password admin jadi acak — reset ke `GensaAdmin2026!`
+    via bcrypt bila perlu login manual/screenshot.
+  - **13H (MVC) — SELESAI 2026-11-21 ~20:10 WIB.** Ringkasan
+    lengkap di "Status sekarang" di atas. `server/index.js` 5.528
+    → 23 baris; semua smoke test lolos tanpa diubah; regresi penuh
+    19/20 (S2 12/15 caveat lama). L11 manual oleh Muse karena
+    Codex kena limit. Tersisa: push GitHub (tugas Muse utama).
+  - **SESI 14 BERJALAN (2026-11-21, jawaban pemilik atas 12 pertanyaan
+    pasca-Sesi 13).** Model `gpt-6-astra` reasoning `xhigh`, sesi BARU
+    per item, prompt lengkap + lampiran verbatim (Codex TIDAK BISA baca
+    file — prompt tanpa lampiran DITOLAK seperti 13B/13D/13E; 14A
+    sempat ditolak 1x sebelum lampiran helper S13B + payload S2
+    ditambahkan). Urutan: Q2 → Q3 → Q6 → Q7 → Q8. Q1, Q4, Q11 tidak
+    ada kerjaan. Q5 (WA otomatis) rencana ke depan saja. Q9 (retensi)
+    menunggu penjelasan + keputusan pemilik. Q10 (deploy) nanti malam.
+    Q12 (screenshot sebagai gambar, bukan ZIP) catatan untuk Muse utama.
+    - **Q1 TERVERIFIKASI (tanpa perubahan):** seed migrasi 008 sudah
+      persis AUD, A–F (caberawit), A–C (pra remaja), A–C (remaja),
+      A–B (usia nikah) — dicek langsung di DB 2026-11-21.
+    - **14A SELESAI — Kunci peran Daerah (Q2).** Codex `gpt-6-astra` +
+      `xhigh`, 2 panggilan (ke-1 DITOLAK — minta isi
+      smoke-test-s13b.js + contoh payload; ke-2 jalan ~4 menit
+      setelah lampiran 17 KB ditambahkan). Hasil audit: server SUDAH
+      menegakkan aturan Daerah (createGenerus/ajukan-ulang/update =
+      kelompok; requestDelete = kelompok/desa; createTugas =
+      admin/kelompok; savePenilaian = kelompok/admin; kelas/users =
+      admin; pertemuan via canManagePertemuan — Daerah hanya
+      tingkat='daerah'; TIDAK ADA endpoint POST /api/wilayah,
+      /api/kelompok, /api/desa). TIDAK ADA perubahan server.
+      Yang dikerjakan: smoke test baru `server/smoke-test-s14a.js`
+      **27/27 LULUS** (10x 403 Daerah, 3x 404 path wilayah, alur
+      lengkap pertemuan daerah: buat 201 → PATCH 200 → daftar
+      absensi 200 → absen hadir 200 → selesai 200; laporan/arsip/
+      generus boleh dibaca Daerah 200). Koreksi Muse: 2 cek tes
+      memakai endpoint `/daftar` (daftar generus layak) — diganti
+      `/absensi` (daftar absensi, bentuk `{ absensi: [...] }`).
+      Label peran diperbaiki di 9 halaman: `Daerah · lihat semua`
+      → `Daerah` (cetak-qr, izin-kelola, jadwal, laporan, materi,
+      scan, dashboard, arsip; generus pakai `Daerah · lingkup
+      daerah` → `Daerah`). Gotcha: password admin di DB BUKAN nilai
+      `.env` (S12/S13 mengubahnya acak) — direset ke ADMIN_PASSWORD
+      `.env` via bcrypt sebelum tes jalan; tes S14A sendiri memakai
+      pola S1 (set must_change_password=true lalu kembalikan).
+      Server tes MASIH JALAN (port 3101) untuk item 14 berikutnya —
+      matikan setelah semua item 14 selesai.
+    - **14B SELESAI — Laporan Word disederhanakan (Q3).** Codex
+      `gpt-6-astra` + `xhigh`, 1 panggilan (~2 menit, tanpa penolakan —
+      lampiran verbatim lengkap). `buatLaporanWord` ditulis ulang:
+      judul + `Tanggal:` + `Periode:` + 1 paragraf penjelasan singkat
+      (2 kalimat: isi rekap + rumus % Hadir) + tabel rekap + tabel
+      rincian (bila ada); DIHAPUS: baris `Wilayah:`, heading `Rekap
+      Kehadiran`, heading `Rincian per Generus`. `hitungLaporan`,
+      endpoint, nama file, header TIDAK diubah. S4 diperbarui: helper
+      `bacaDocumentXml(buffer)` (node:zlib, cari header PK lokal,
+      inflate `word/document.xml`) + assert isi (ada Judul/Periode/
+      Tanggal; TIDAK ada Wilayah/Rekap Kehadiran/Rincian per Generus).
+      **S4 8/8 LULUS** setelah 2 artefak tes S14A dibersihkan (lihat
+      bawah). Koreksi Muse: format keluaran Codex kali ini membungkus
+      tiap blok dalam fence ```text dengan CARI/GANTI mentah (bukan
+      fence dalam) — parser `.codex-out/apply14.py` ditulis ulang
+      untuk format itu.
+    - **14C SELESAI — Ekspor Excel (Q6).** Codex `gpt-6-astra` +
+      `xhigh`, 2 panggilan (ke-1 DITOLAK — minta handler unduh
+      laporan.html + penilaianUrl() materi.html + helper S13B/S14A
+      verbatim; ke-2 jalan ~6 menit setelah lampiran 26 KB
+      ditambahkan, prompt `PROMPT_S14C_EXCEL.md`). Package
+      `exceljs` 4.4.0 (sudah terpasang). `buatLaporanExcel(laporan)`
+      (sheet Rekap + Rincian bila rincian=1) dan
+      `buatNilaiExcel(data)` (sheet Hasil + Penilaian) di
+      `server/index.js`; `listPenilaian` diekstrak jadi
+      `ambilPenilaian(req, auth)` + wrapper tipis (respons JSON
+      TIDAK berubah — dicek tes). Endpoint baru GET
+      `/api/laporan.xlsx` (dalam router laporan yang sama, validasi
+      dari/sampai/rincian sama) dan GET `/api/nilai.xlsx`
+      (filename `rekap-nilai.xlsx`, `Cache-Control: no-store`).
+      Tombol "Unduh Excel" di laporan.html (di samping "Unduh
+      Word") dan materi.html (section Hasil). Tes baru
+      `server/smoke-test-s14c.js` **11/11 LULUS** (parse xlsx
+      dengan exceljs; setup via API, pertemuan tingkat KELOMPOK
+      supaya tidak mengotori rekap S4). Regresi: **S6 7/7, S4 8/8
+      LULUS.** Koreksi Muse: (1) 2 anchor router Codex salah
+      (format `if (` + indentasi) — diperbaiki manual; (2) apply
+      script TIDAK idempotent — menjalankan ulang apply14.py
+      pada output yang sama MENDUPLIKASI blok append (buatLaporanExcel
+      2x, tombol + handler 2x) — duplikat dihapus manual; JANGAN
+      pernah jalankan ulang apply14.py pada file output yang sama.
+      Parser apply14.py juga diperbaiki: blok file lengkap mentah
+      (tanpa fence) kini didukung.
+    - **14D SELESAI — Pengingat jadwal (Q7).** Codex `gpt-6-astra` +
+      `xhigh`, 1 panggilan (~4 menit, tanpa penolakan — lampiran
+      verbatim lengkap, prompt `PROMPT_S14D_PENGINGAT.md`). Migrasi
+      `012_pertemuan_pengingat.sql` (kolom `pertemuan.pengingat_jam`
+      INTEGER nullable + CHECK 1–720); helper baru
+      `validPengingatJam` (kosong → null, di luar 1–720 → 400);
+      createPertemuan terima `pengingat_jam` (INSERT + param $7);
+      updatePertemuan terima `pengingat_jam` (whitelist + kolom,
+      pesan diubah jadi "Hanya tanggal, jenjang, dan pengingat yang
+      boleh diubah."); jadwal.html: field baru "Ingatkan H- berapa
+      jam sebelum pengajian (opsional)" di form buat + editor ubah
+      (bacaPengingat, kosong = hapus pengingat), daftar tampilkan
+      "Ingatkan H-X jam" bila terisi. TIDAK ada pengiriman pengingat
+      (WA/notifikasi) — hanya pengaturan + tampilan. Tes baru
+      `server/smoke-test-s14d.js` **10/10 LULUS** (termasuk hapus
+      pertemuan uji di akhir supaya tidak mengotori S4). Regresi:
+      **S3 11/11, S4 8/8 LULUS.** Gotcha: `pkill -f "node index.js"`
+      membunuh sesi exec sendiri karena baris perintah sesi itu
+      mengandung teks yang sama — pakai `pkill -f "node [i]ndex.js"`
+      DAN hindari teks literal `node index.js` di sisa perintah
+      (start server dengan `node ./index.js`).
+    - **14E SELESAI 2026-11-21 ~17:20 WIB — Kartu QR + foto (Q8).**
+      Codex `gpt-6-astra` + `xhigh`, 1 panggilan (~6 menit, tanpa
+      penolakan — prompt `PROMPT_S14E_FOTO.md`, output
+      `.codex-out/s14e.txt` 28.129 byte, 12 blok). Hasil:
+      migrasi `013_generus_foto.sql` (kolom `generus.foto_url TEXT`
+      nullable, isi = nama file saja); konstanta `UPLOADS_DIR` +
+      `MAX_FOTO_BYTES` (2 MB); `readFotoBody` (413 bila >2 MB);
+      `uploadFoto` (Content-Type JPEG/PNG saja, magic-bytes, nama
+      acak 32-hex + ekstensi, `fs.writeFileSync` flag wx mode 600,
+      hapus foto lama, hanya kelompok pemilik + admin, generus
+      approved) + `getFoto` (scope seperti qrSvg, tolak nama file
+      berisi `/` atau `\\`, 404 bila file tidak ada); router POST +
+      GET `/api/generus/:id/foto`; `listGenerus` + `daerah_nama`
+      (JOIN daerah); cetak-qr.html jadi kartu (foto 120x150 /
+      placeholder "Tanpa foto", nama, kelompok · desa, daerah, kelas,
+      QR, kode manual); generus.html fungsi `unggahFoto` + tombol
+      "Unggah foto" (hanya kelompok pemilik + approved). Tes baru
+      `server/smoke-test-s14e.js` **13/13 LULUS** (10 check + 3
+      pembersihan). Regresi penuh pasca-14E: S1 11/11, S4 8/8,
+      S13 8/8, S13A 9/9, S13B 9/9, S13C 8/8, S13D 6/6, S14A 27/27,
+      S14C 11/11 (setelah bersih artefak S14A, lihat bawah), S14D
+      10/10, S12 8/8 — SEMUA LULUS. S2 12/15 (caveat lama data tes
+      menumpuk, bukan regresi). Server tes DIMATIKAN setelah tes
+      (port 3101 bebas); folder `server/uploads/` kosong.
+      Catatan: foto TIDAK akan bertahan di Vercel serverless
+      (FS read-only kecuali /tmp) — butuh object storage bila
+      deploy; jangan janji ke pemilik.
+      **INSIDEN DUPLIKASI (penting — jangan ulangi):** 14E ternyata
+      SUDAH diterapkan parent (paralel, sesi Codex + apply yang
+      sama) SEBELUM subagent ini menjalankan apply-nya — file
+      backup `.codex-out/*.sebelum-14e` (disalin 17:16:57 WIB,
+      1 detik sebelum apply subagent) sudah berisi 1 salinan
+      lengkap semua blok 14E, dan kolom `foto_url` sudah ada di DB.
+      Apply subagent (17:16:58 WIB) MENDUPLIKASI 8 blok yang
+      anchor-nya masih cocok (blok02/04/05/06/07/08/10/11 —
+      UPLOADS_DIR, readFotoBody, uploadFoto, getFoto, router foto,
+      CSS kartu, unggahFoto + tombol jadi 2x); blok03/09 terlewat
+      dengan benar karena anchor sudah tidak ada. DIPERBAIKI:
+      ketiga file dikembalikan dari backup (1 salinan, sintaks
+      OK), migrasi + smoke test ditulis ulang utuh (isi sama).
+      PELAJARAN: sebelum menjalankan apply14.py, SELALU cek dulu
+      apakah kode sudah ada di file (`grep -c` pola kunci) —
+      JANGAN asumsikan repo masih perawan; dan JANGAN jalankan
+      Codex + apply yang sama dari dua sesi paralel.
+    - **13H (MVC) — SELESAI 2026-11-21 ~20:10 WIB** (rincian di
+      "Status sekarang"). `server/index.js` 5.528 → 23 baris;
+      L1–L10 Codex `gpt-6-astra` `xhigh`, L11 manual oleh Muse
+      (Codex kena limit pemakaian). Regresi penuh lolos; S2 12/15
+      caveat lama. Tersisa: push GitHub (tugas Muse utama).
+      `server/migrations/` + `db.js` + `seed.js` tetap.
+    - **Caveat tes (baru, efek S14A):** rekap `hitungLaporan`
+      menghitung SEMUA pertemuan tingkat='daerah' yang selesai dalam
+      rentang tanggal untuk SETIAP kelompok. S4 sempat 2 gagal
+      (pertemuan 4 vs 2, 5 vs 3) karena 2 pertemuan daerah dari tes
+      S14A (id 202, 203, tanggal hari ini, sudah selesai — selesai
+      otomatis menandai ~267 alfa per pertemuan, 535 baris absensi)
+      masuk rentang S4 (kemarin–hari ini). BUKAN regresi Q3
+      (hitungLaporan tidak disentuh). Dibersihkan: hapus absensi +
+      pertemuan 202/203, S4 lulus 8/8. Pelajaran: tes yang membuat
+      pertemuan daerah HARUS membersihkan artefaknya, atau S4 akan
+      gagal selama ada pertemuan daerah selesai dalam rentang
+      kemarin–hari ini. Terulang 2026-11-21 ~17:30 WIB: S14C gagal
+      1 check (Pertemuan 2 vs 1) karena pertemuan daerah id 232
+      dari tes S14A; dibersihkan (hapus 299 absensi + pertemuan
+      232), S14C lulus 11/11. S4 lolos kali ini karena jalan
+      SEBELUM S14A.
+    - **UI LOGIN ala simgenerus.com SELESAI 2026-11-21 ~17:50 WIB.**
+      Koreksi pemilik: "web simgenerus" = simgenerus.com (BUKAN file demo v1);
+      acuan DESAIN.md. Scope: login.html + reset-password.html saja (dashboard
+      TIDAK diubah). Codex gpt-6-astra + xhigh, 2 panggilan (ke-1 DITOLAK —
+      minta STATE.md + 3 skill verbatim; ke-2 jalan ~4 menit setelah lampiran
+      33 KB ditambahkan, prompt PROMPT_UI_LOGIN.md, output .codex-out/ui-login.txt
+      13.692 byte, 4 blok). Hasil: kartu auth terpusat 100dvh (logo G + GENSA +
+      subjudul, badge pill "● Masuk ke Platform", H1 "Selamat Datang", label
+      uppercase ALAMAT EMAIL/PASSWORD, tautan "Lupa password?" di baris label,
+      tombol mata password (SVG eye, aria-pressed), tombol "Masuk ke Sistem →"
+      coklat solid lebar penuh, tombol "Masuk dengan Google" tetap, footer
+      "Sistem Informasi Manajemen Generus" + pill "v 1.0"; reset-password kartu
+      sama (minta tautan / atur password baru). Warna TETAP palet GENSA (krem/
+      coklat/sage, tanpa gelap/neon/gradasi); tanpa brand simgenerus. Semua id +
+      logika JS + endpoint TETAP; server/index.js TIDAK disentuh. Diterapkan
+      SEKALI via apply14.py ui-login (backup .sebelum-ui-login; grep dulu 0,
+      anchor 1x; tanpa duplikat). JS lolos node --check (5 skrip). Regresi penuh
+      pasca-UI: S13D, S7, S13, S8 8/8, S3, S4, S5, S6, S9, S13A, S13B, S13E,
+      S14C 11/11, S14D 10/10, S14E 13/13, S10, S13C 8/8 (ulang setelah jeda
+      65 dtk), S14A 0 gagal, S12 — SEMUA LULUS. S2 12/15 (caveat lama). Gotcha:
+      S8 butuh server + tes dijalankan dgn GOOGLE_CLIENT_ID/SECRET dummy
+      (kalau tidak: check pertama 503, atau tes abort "tidak dapat
+      diselesaikan" bila env tes kosong); S13C gagal 2x bila jalan <60 dtk
+      setelah S10 (R2) — ulang setelah jeda 65 dtk lulus. Screenshot desktop
+      1280×900 + mobile 360×800 (login, reset-password, reset-confirm) di
+      ~/workspace/your_files/screenshot-gensa/ — diverifikasi visual: struktur
+      sama seperti login simgenerus.com, warna GENSA, tanpa overflow; tombol
+      mata terverifikasi via CDP (klik → type text + aria-pressed true, klik
+      lagi → password). **VM diganti 2026-11-21 ~17:43 WIB** (bersamaan reset
+      mingguan Codex): Docker + server mati; Docker direstart (6 container Up,
+      postgres ready), DB utuh (15 tabel, 451 generus, 447 users, foto_url ADA),
+      file apply utuh, server dinyalakan ulang; tes TIDAK perlu diulang (semua
+      lulus sebelum ganti VM). Skrip screenshot auth:
+      ~/workspace/gensa-shot-auth.js (desktop/mobile, tanpa login).
+  - **Butuh pemilik (tetap):** (1) akun Neon + akses Vercel untuk
+    deploy (M11); (2) kredensial OAuth Google asli; (3) SMTP
+    (host/port/user/pass) untuk M4 — tanpa itu reset tetap lewat
+    log server + peringatan di halaman Admin; (4) daftar kelas
+    ASLI (seed sekarang contoh: caberawit AUD/A–F, pra remaja
+    A–C, remaja A–C, usia nikah A–B — Admin bisa ubah lewat menu
+    Kelas); (5) uji kamera scan QR di HP sungguhan.
+- **SESI 12 SELESAI (2026-11-21, atas perintah pemilik "semua harus jadi
   hari ini" + "tampilannya hampir mirip yang v1 tapi sistemnya sesuai PRD"):
   perbaikan temuan review S11.** Pemilik kecewa setelah coba di laptopnya:
   habis login langsung ke halaman Jadwal, tidak ada dashboard, halaman
@@ -768,11 +1338,16 @@ dibuat Admin dan pendaftaran khusus per peran.
   File ini BELUM di-push ke GitHub (push terakhir commit `827f74fb`).
 - Sesi 11 review Codex SELESAI (2026-11-21 ~09:45 WIB) — daftar
   ada di STATE.md bagian "Yang sedang dikerjakan". Perbaikan temuan
-  review SUDAH DIPERINTAHKAN pemilik 2026-11-21 ~09:30 WIB ("semua
+  review DIPERINTAHKAN pemilik 2026-11-21 ~09:30 WIB ("semua
   harus jadi hari ini") — lihat "Status sekarang" (Sesi 12).
-  Setelah Sesi 12 tuntas, baru: struktur kelas/PAUD–SD + riwayat
-  kelas (M7–M8), retensi 1 bulan (M10), kirim email reset (M4, butuh
-  SMTP), deploy.
+  Sesi 13 (lengkapi semua, astra xhigh) HAMPIR SELESAI: 13A SELESAI
+  (M7/M8/M9), 13B SELESAI (M5+D9), 13C SELESAI (D3+R3), 13D SELESAI
+  (M4+R4+D2), 13E SELESAI (M10), 13G SELESAI (audit R + rate limit
+  reset), 13F SELESAI (tampilan, 2026-11-21 ~13:33 WIB). TERSISA:
+  13H MVC (refactor server/index.js 5.000+ baris) + M11 deploy
+  (butuh Neon + Vercel dari pemilik).
+  Setelah semua selesai: tanya pemilik "apa lagi yang harus
+  ditambah" (daftar pertanyaan dibuat di laporan akhir Sesi 13).
 - Jangan push ke GitHub dari VM — repo `RoisChakim/gensa` di-push
   pemilik sendiri (konektor GitHub ditolak 403 saat membuat repo).
   Subagent Sesi 12 JUGA dilarang push — parent yang push.

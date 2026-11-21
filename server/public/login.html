@@ -5,93 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Masuk — GENSA</title>
   <link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#8A5A33">
-  <style>
-    :root {
-      color-scheme: light;
-      font-family: system-ui, sans-serif;
-      color: #34271e;
-      background: #f6f1e9;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      padding: 24px 16px;
-    }
-
-    main {
-      max-width: 420px;
-      margin: 8vh auto;
-      padding: 28px;
-      background: #fffdf9;
-      border: 1px solid #ded3c3;
-      border-radius: 12px;
-    }
-
-    h1 { margin: 0 0 8px; color: #8a5a33; }
-    p { line-height: 1.5; }
-    label { display: block; margin: 18px 0 6px; font-weight: 600; }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #a99986;
-      border-radius: 6px;
-      font: inherit;
-    }
-
-    input:focus {
-      outline: 3px solid #b9cbb4;
-      border-color: #5f7a57;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 22px;
-      padding: 12px;
-      border: 0;
-      border-radius: 6px;
-      background: #8a5a33;
-      color: white;
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    button:disabled { opacity: 0.65; cursor: wait; }
-    .accent { color: #5f7a57; }
-    .message { min-height: 1.5em; margin-bottom: 0; }
-    .error { color: #9a3027; }
-    [hidden] { display: none; }
-  </style>
+    <link rel="stylesheet" href="/app.css">
 </head>
-<body>
-  <main>
-    <h1>GENSA</h1>
-    <p class="accent">Selamat datang. Silakan masuk untuk melanjutkan.</p>
+<body class="auth-page">
+  <main class="auth-main">
+    <div class="auth-brand">
+      <img class="auth-logo" src="/icon-192.png" width="44" height="44" alt="">
+      <div>
+        <p class="auth-brand-name">GENSA</p>
+        <p class="auth-brand-subtitle">Platform Manajemen Generus</p>
+      </div>
+    </div>
+    <p class="auth-badge">● Masuk ke Platform</p>
+    <h1>Selamat Datang</h1>
 
     <form id="login-form">
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" autocomplete="username" required>
+      <label for="email">ALAMAT EMAIL</label>
+      <input id="email" name="email" type="email" autocomplete="username"
+             placeholder="nama@email.com" required>
 
-      <label for="password">Password</label>
-      <input id="password" name="password" type="password"
-             autocomplete="current-password" required>
+      <div class="auth-label-row">
+        <label for="password">PASSWORD</label>
+        <a class="auth-forgot" href="/reset-password.html">Lupa password?</a>
+      </div>
+      <div class="auth-password">
+        <input id="password" name="password" type="password"
+               autocomplete="current-password" placeholder="••••••••" required>
+        <input class="auth-password-toggle" type="button" value="Lihat"
+               aria-label="Tampilkan password" aria-controls="password"
+               aria-pressed="false">
+      </div>
 
-      <button type="submit">Masuk</button>
-      <p><a href="/reset-password.html">Lupa password?</a></p>
-      <a
-        href="/api/auth/google"
-        style="display:block;box-sizing:border-box;margin-top:12px;padding:12px 16px;border:1px solid #8A5A33;border-radius:8px;background:#F6F1E9;color:#8A5A33;text-align:center;text-decoration:none;font:inherit;"
-      >
-        Masuk dengan Google
-      </a>
+      <button type="submit">Masuk ke Sistem →</button>
+      <a class="auth-google" href="/api/auth/google">Masuk dengan Google</a>
       <p id="google-login-status" role="status" aria-live="polite" hidden></p>
     </form>
 
     <form id="change-form" hidden>
-      <p>Untuk keamanan akun, ganti password sebelum melanjutkan.</p>
+      <p class="auth-description">Untuk keamanan akun, ganti password sebelum melanjutkan.</p>
 
       <label for="old-password">Password lama</label>
       <input id="old-password" type="password"
@@ -105,10 +56,26 @@
     </form>
 
     <p id="message" class="message" role="status" aria-live="polite"></p>
+
+    <footer class="auth-footer">
+      <span>Sistem Informasi Manajemen Generus</span>
+      <span class="auth-version">v 1.0</span>
+    </footer>
   </main>
 
   <script>
     'use strict';
+
+    document.querySelector('.auth-password-toggle').addEventListener('click', (event) => {
+      const passwordField = document.getElementById('password');
+      const showPassword = passwordField.type === 'password';
+      passwordField.type = showPassword ? 'text' : 'password';
+      event.currentTarget.setAttribute(
+        'aria-label',
+        showPassword ? 'Sembunyikan password' : 'Tampilkan password'
+      );
+      event.currentTarget.setAttribute('aria-pressed', showPassword);
+    });
 
     const loginForm = document.getElementById('login-form');
     const changeForm = document.getElementById('change-form');
@@ -165,7 +132,7 @@
           changeForm.hidden = false;
           document.getElementById('old-password').focus();
         } else {
-          showMessage('Berhasil masuk. Halaman utama belum tersedia.');
+          window.location.replace('/dashboard.html');
         }
       } catch {
         showMessage('Tidak dapat terhubung ke server. Coba lagi.', true);
@@ -193,7 +160,7 @@
 
         changeForm.reset();
         changeForm.hidden = true;
-        showMessage('Password berhasil diganti. Halaman utama belum tersedia.');
+        window.location.replace('/dashboard.html');
       } catch {
         showMessage('Tidak dapat terhubung ke server. Coba lagi.', true);
       } finally {

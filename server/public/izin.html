@@ -7,154 +7,10 @@
   <meta name="referrer" content="no-referrer">
   <title>Kirim izin — GENSA</title>
   <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/app.css">
   <style>
-    :root {
-      color-scheme: light;
-      --krem: #F6F1E9;
-      --coklat: #8A5A33;
-      --sage: #5F7A57;
-      --sage-muda: #7C9A6E;
-      --teks: #483B30;
-      --garis: #D8CDBE;
-      --putih: #FFFDFA;
-    }
-
-    * { box-sizing: border-box; }
-    [hidden] { display: none !important; }
-
-    body {
-      margin: 0;
-      background: var(--krem);
-      color: var(--teks);
-      font-family: system-ui, sans-serif;
-      line-height: 1.6;
-    }
-
-    main {
-      max-width: 850px;
-      margin: 0 auto;
-      padding: 24px 16px 48px;
-    }
-
-    h1 { margin: 0 0 8px; color: var(--coklat); }
-    p { margin: 0 0 16px; }
-
-    .kartu {
-      background: var(--putih);
-      border: 1px solid var(--garis);
-      border-radius: 16px;
-      padding: 20px;
-    }
-
-    fieldset {
-      min-width: 0;
-      border: 0;
-      margin: 0;
-      padding: 0;
-    }
-
-    legend {
-      padding: 0;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .bidang { margin-bottom: 20px; }
-
-    input, select, textarea, button {
-      font: inherit;
-    }
-
-    input[type="text"], select, textarea {
-      display: block;
-      width: 100%;
-      min-height: 44px;
-      color: var(--teks);
-      background: var(--putih);
-      border: 1px solid var(--garis);
-      border-radius: 8px;
-      padding: 10px 12px;
-    }
-
-    textarea { min-height: 100px; resize: vertical; }
-
-    button {
-      min-height: 44px;
-      border: 0;
-      border-radius: 8px;
-      padding: 10px 16px;
-      background: var(--coklat);
-      color: white;
-      cursor: pointer;
-    }
-
-    button.secondary { background: var(--sage); }
-    button:disabled { opacity: 0.6; cursor: wait; }
-
-    :focus-visible {
-      outline: 3px solid var(--sage-muda);
-      outline-offset: 3px;
-    }
-
-    .pilihan-radio {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px 24px;
-      margin-bottom: 20px;
-    }
-
-    .pilihan-radio label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 44px;
-      margin: 0;
-    }
-
-    .pilihan-radio input { accent-color: var(--sage); }
-
-    .aksi {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    .bantuan { font-size: 0.9rem; margin: 8px 0 0; }
-
-    #pesan {
-      margin: 16px 0;
-      padding: 12px 16px;
-      background: #ECEFE5;
-      border-left: 4px solid var(--sage);
-      border-radius: 8px;
-      overflow-wrap: anywhere;
-    }
-
-    #pesan[data-jenis="error"] {
-      background: #F2E5D9;
-      border-left-color: var(--coklat);
-    }
-
-    video {
-      display: block;
-      width: 100%;
-      max-height: 360px;
-      border-radius: 10px;
-      background: var(--krem);
-      margin-top: 12px;
-    }
-
-    @media (max-width: 480px) {
-      .kartu { padding: 16px; }
-      .aksi button { width: 100%; }
-    }
+    .kartu{padding:16px}
+    .aksi button{width:100%}
   </style>
   <script src="/jsQR.js" defer></script>
 </head>
@@ -167,53 +23,7 @@
 
     <form id="form-izin" class="kartu" hidden>
       <fieldset id="pilihan">
-        <div id="bidang-desa" class="bidang" hidden>
-          <label for="desa">Desa</label>
-          <select id="desa" disabled></select>
-        </div>
-
-        <div id="bidang-kelompok" class="bidang" hidden>
-          <label for="kelompok">Kelompok</label>
-          <select id="kelompok" disabled></select>
-        </div>
-
-        <div id="bidang-generus" class="bidang" hidden>
-          <label for="generus">Nama generus</label>
-          <select id="generus" disabled></select>
-        </div>
-      </fieldset>
-
-      <fieldset id="rincian" hidden disabled>
-        <legend>Alasan tidak hadir</legend>
-
-        <div class="pilihan-radio">
-          <label>
-            <input
-              type="radio"
-              name="alasan"
-              value="sakit"
-              checked
-              required
-            >
-            Sakit
-          </label>
-
-          <label>
-            <input type="radio" name="alasan" value="izin" required>
-            Izin
-          </label>
-        </div>
-
-        <div class="bidang">
-          <label id="label-keterangan" for="keterangan">
-            Keterangan (opsional)
-          </label>
-          <textarea
-            id="keterangan"
-            maxlength="500"
-            rows="3"
-          ></textarea>
-        </div>
+        <legend>Verifikasi kode</legend>
 
         <div class="bidang">
           <label for="kode">Kode manual / kode QR</label>
@@ -228,7 +38,9 @@
             aria-describedby="bantuan-kode"
           >
           <p id="bantuan-kode" class="bantuan">
-            Gunakan kode milik nama yang dipilih.
+            Masukkan kode manual 6 karakter atau tempel token QR
+            32 karakter milik generus. Nama akan tampil setelah
+            kode berhasil diperiksa.
           </p>
 
           <div class="aksi">
@@ -263,6 +75,37 @@
         </div>
 
         <div class="aksi">
+          <button id="periksa" type="submit">Periksa kode</button>
+        </div>
+      </fieldset>
+
+      <fieldset id="rincian" hidden disabled>
+        <legend>Isi izin</legend>
+
+        <div class="bidang">
+          <p>Nama generus<br><span id="nama-generus" class="tag"></span></p>
+        </div>
+
+        <div class="bidang">
+          <label for="alasan">Alasan tidak hadir</label>
+          <select id="alasan" name="alasan" required>
+            <option value="sakit">Sakit</option>
+            <option value="izin">Izin</option>
+          </select>
+        </div>
+
+        <div class="bidang">
+          <label id="label-keterangan" for="keterangan">
+            Keterangan (opsional)
+          </label>
+          <textarea
+            id="keterangan"
+            maxlength="500"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="aksi">
           <button id="kirim" type="submit">Kirim izin</button>
         </div>
       </fieldset>
@@ -280,17 +123,12 @@
     const infoKegiatan = document.getElementById('info-kegiatan');
     const pesan = document.getElementById('pesan');
 
-    const desa = document.getElementById('desa');
-    const kelompok = document.getElementById('kelompok');
-    const generus = document.getElementById('generus');
-
-    const bidangDesa = document.getElementById('bidang-desa');
-    const bidangKelompok = document.getElementById('bidang-kelompok');
-    const bidangGenerus = document.getElementById('bidang-generus');
-
+    const namaGenerus = document.getElementById('nama-generus');
+    const alasan = document.getElementById('alasan');
     const keterangan = document.getElementById('keterangan');
     const labelKeterangan = document.getElementById('label-keterangan');
     const kode = document.getElementById('kode');
+    const periksa = document.getElementById('periksa');
     const kirim = document.getElementById('kirim');
 
     const scan = document.getElementById('scan');
@@ -299,8 +137,8 @@
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
 
-    let tingkat = null;
-    let versiPilihan = 0;
+    let generusTerverifikasi = null;
+    let kodeTerverifikasi = '';
     let sedangMengirim = false;
     let stream = null;
     let bingkai = null;
@@ -345,23 +183,9 @@
       return data;
     }
 
-    function alamatApi(parameter = {}) {
-      const query = new URLSearchParams({ t: token });
-
-      for (const [nama, nilai] of Object.entries(parameter)) {
-        query.set(nama, String(nilai));
-      }
-
-      return '/api/izin?' + query.toString();
-    }
-
-    function pesanMuat(error) {
-      beriPesan(
-        error.status === 404
-          ? 'Tautan izin tidak ditemukan atau kegiatan sudah selesai.'
-          : error.message,
-        'error'
-      );
+    function alamatApi(path = '/api/izin') {
+      const query = new URLSearchParams({ t: token || '' });
+      return path + '?' + query.toString();
     }
 
     function formatTanggal(nilai) {
@@ -381,43 +205,10 @@
       return hasil.charAt(0).toUpperCase() + hasil.slice(1);
     }
 
-    function kosongkanSelect(select, bidang) {
-      select.replaceChildren();
-      select.value = '';
-      select.required = false;
-      select.disabled = true;
-      bidang.hidden = true;
-    }
-
-    function isiSelect(select, bidang, daftar, judul) {
-      select.replaceChildren();
-
-      const awal = document.createElement('option');
-      awal.value = '';
-      awal.textContent = judul;
-      select.append(awal);
-
-      for (const item of daftar) {
-        const option = document.createElement('option');
-        option.value = String(item.id);
-        option.textContent = item.nama;
-        select.append(option);
-      }
-
-      select.value = '';
-      select.required = true;
-      select.disabled = false;
-      bidang.hidden = false;
-    }
-
     function ubahAlasan() {
-      const alasan = form.querySelector(
-        'input[name="alasan"]:checked'
-      ).value;
-
-      keterangan.required = alasan === 'izin';
+      keterangan.required = alasan.value === 'izin';
       keterangan.setCustomValidity('');
-      labelKeterangan.textContent = alasan === 'izin'
+      labelKeterangan.textContent = alasan.value === 'izin'
         ? 'Alasan izin'
         : 'Keterangan (opsional)';
     }
@@ -446,165 +237,73 @@
       canvas.height = 0;
     }
 
-    function resetRincian() {
-      hentikanKamera();
-      rincian.hidden = true;
-      rincian.disabled = true;
-      kode.value = '';
-      keterangan.value = '';
-      form.querySelector('input[value="sakit"]').checked = true;
-      ubahAlasan();
-    }
-
     async function muatAwal() {
-      if (!token || !/^[a-fA-F0-9]{32}$/.test(token)) {
-        infoKegiatan.textContent = '';
-        beriPesan('Tautan izin tidak valid.', 'error');
-        return;
-      }
-
-      const versi = ++versiPilihan;
-
       try {
         const data = await api(alamatApi());
-
-        if (versi !== versiPilihan) return;
-
-        tingkat = data.pertemuan.tingkat;
         const namaTingkat = {
           kelompok: 'Kelompok',
           desa: 'Desa',
           daerah: 'Daerah'
         };
 
+        const lingkup = data.kelompok
+          ? 'Kelompok ' + data.kelompok.nama
+          : namaTingkat[data.pertemuan.tingkat];
+
         infoKegiatan.textContent =
+          'Izin untuk kegiatan ' +
           formatTanggal(data.pertemuan.tanggal) +
-          ' · ' + namaTingkat[tingkat];
+          ' — ' + lingkup;
 
         form.hidden = false;
-
-        if (tingkat === 'daerah') {
-          isiSelect(desa, bidangDesa, data.desa, 'Pilih desa');
-
-          if (data.desa.length === 0) {
-            beriPesan('Belum ada desa yang dapat dipilih.');
-          }
-        } else if (tingkat === 'desa') {
-          isiSelect(
-            kelompok,
-            bidangKelompok,
-            data.kelompok,
-            'Pilih kelompok'
-          );
-
-          if (data.kelompok.length === 0) {
-            beriPesan('Belum ada kelompok yang dapat dipilih.');
-          }
-        } else {
-          isiSelect(
-            generus,
-            bidangGenerus,
-            data.generus,
-            'Pilih nama generus'
-          );
-
-          if (data.generus.length === 0) {
-            beriPesan('Belum ada nama yang sesuai dengan kegiatan ini.');
-          }
-        }
       } catch (error) {
-        if (versi !== versiPilihan) return;
+        form.hidden = true;
         infoKegiatan.textContent = '';
-        pesanMuat(error);
+        beriPesan(error.message, 'error');
       }
     }
 
-    desa.addEventListener('change', async () => {
-      const versi = ++versiPilihan;
+    async function periksaKode() {
+      if (sedangMengirim || !kode.reportValidity()) return;
 
-      kosongkanSelect(kelompok, bidangKelompok);
-      kosongkanSelect(generus, bidangGenerus);
-      resetRincian();
-      beriPesan('');
+      const kodeDikirim = kode.value.trim();
 
-      if (!desa.value) return;
-
-      beriPesan('Memuat kelompok…');
-
-      try {
-        const data = await api(alamatApi({ desa_id: desa.value }));
-
-        if (versi !== versiPilihan) return;
-
-        isiSelect(
-          kelompok,
-          bidangKelompok,
-          data.kelompok,
-          'Pilih kelompok'
-        );
-
-        beriPesan(
-          data.kelompok.length === 0
-            ? 'Belum ada kelompok di desa ini.'
-            : ''
-        );
-      } catch (error) {
-        if (versi === versiPilihan) pesanMuat(error);
-      }
-    });
-
-    kelompok.addEventListener('change', async () => {
-      const versi = ++versiPilihan;
-
-      kosongkanSelect(generus, bidangGenerus);
-      resetRincian();
-      beriPesan('');
-
-      if (!kelompok.value) return;
-
-      const parameter = { kelompok_id: kelompok.value };
-
-      if (tingkat === 'daerah') {
-        parameter.desa_id = desa.value;
-      }
-
-      beriPesan('Memuat nama…');
+      hentikanKamera();
+      sedangMengirim = true;
+      pilihan.disabled = true;
+      periksa.textContent = 'Memeriksa…';
+      beriPesan('Memeriksa kode…');
 
       try {
-        const data = await api(alamatApi(parameter));
+        const data = await api(alamatApi('/api/izin/verifikasi'), {
+          method: 'POST',
+          body: JSON.stringify({ kode: kodeDikirim })
+        });
 
-        if (versi !== versiPilihan) return;
+        generusTerverifikasi = data.generus;
+        kodeTerverifikasi = kodeDikirim;
+        namaGenerus.textContent = data.generus.nama;
 
-        isiSelect(
-          generus,
-          bidangGenerus,
-          data.generus,
-          'Pilih nama generus'
-        );
-
-        beriPesan(
-          data.generus.length === 0
-            ? 'Belum ada nama yang sesuai dengan kegiatan ini.'
-            : ''
-        );
-      } catch (error) {
-        if (versi === versiPilihan) pesanMuat(error);
-      }
-    });
-
-    generus.addEventListener('change', () => {
-      resetRincian();
-      beriPesan('');
-
-      if (generus.value) {
+        pilihan.hidden = true;
+        periksa.type = 'button';
         rincian.hidden = false;
         rincian.disabled = false;
+        ubahAlasan();
+        beriPesan('');
+        alasan.focus();
+      } catch (error) {
+        beriPesan(
+          error.status === 404 ? 'Kode tidak ditemukan.' : error.message,
+          'error'
+        );
+      } finally {
+        sedangMengirim = false;
+        pilihan.disabled = generusTerverifikasi !== null;
+        periksa.textContent = 'Periksa kode';
       }
-    });
-
-    for (const radio of form.querySelectorAll('input[name="alasan"]')) {
-      radio.addEventListener('change', ubahAlasan);
     }
+
+    alasan.addEventListener('change', ubahAlasan);
 
     keterangan.addEventListener('input', () => {
       keterangan.setCustomValidity('');
@@ -613,7 +312,7 @@
     hentikanScan.addEventListener('click', hentikanKamera);
 
     scan.addEventListener('click', async () => {
-      if (sedangMengirim) return;
+      if (sedangMengirim || generusTerverifikasi !== null) return;
 
       hentikanKamera();
       const versi = versiKamera;
@@ -687,8 +386,8 @@
                   /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(terbaca)
                 ) {
                   kode.value = terbaca;
-                  beriPesan('Kode terbaca. Silakan kirim izin.');
-                  kode.focus();
+                  beriPesan('Kode terbaca. Silakan periksa kode.');
+                  periksa.focus();
                 } else {
                   beriPesan(
                     'Kode yang terbaca bukan kode GENSA. Silakan coba lagi.',
@@ -725,13 +424,14 @@
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      if (sedangMengirim || !generus.value) return;
+      if (sedangMengirim) return;
 
-      const alasan = form.querySelector(
-        'input[name="alasan"]:checked'
-      ).value;
+      if (generusTerverifikasi === null) {
+        await periksaKode();
+        return;
+      }
 
-      if (alasan === 'izin' && !keterangan.value.trim()) {
+      if (alasan.value === 'izin' && !keterangan.value.trim()) {
         keterangan.setCustomValidity('Tuliskan alasan izin.');
         keterangan.reportValidity();
         return;
@@ -740,15 +440,14 @@
       if (!form.reportValidity()) return;
 
       const body = {
-        generus_id: Number(generus.value),
-        kode: kode.value.trim(),
-        alasan,
-        keterangan: keterangan.value.trim() || null
+        generus_id: generusTerverifikasi.id,
+        alasan: alasan.value,
+        keterangan: keterangan.value.trim() || null,
+        kode: kodeTerverifikasi
       };
 
       hentikanKamera();
       sedangMengirim = true;
-      pilihan.disabled = true;
       rincian.disabled = true;
       kirim.textContent = 'Mengirim…';
       beriPesan('Mengirim izin…');
@@ -759,19 +458,21 @@
           body: JSON.stringify(body)
         });
 
+        form.hidden = true;
+        generusTerverifikasi = null;
+        kodeTerverifikasi = '';
         kode.value = '';
         keterangan.value = '';
-        form.hidden = true;
+        namaGenerus.textContent = '';
 
         beriPesan(
-          'Izin terkirim. Menunggu persetujuan pengurus kelompok.'
+          'Izin sudah dikirim. Menunggu persetujuan pengurus kelompok.'
         );
       } catch (error) {
         beriPesan(error.message, 'error');
       } finally {
         sedangMengirim = false;
-        pilihan.disabled = false;
-        rincian.disabled = !generus.value;
+        rincian.disabled = generusTerverifikasi === null;
         kirim.textContent = 'Kirim izin';
       }
     });
@@ -791,6 +492,7 @@
 
       scan.hidden = !kameraTersedia;
       bantuanKamera.hidden = kameraTersedia;
+      ubahAlasan();
       muatAwal();
     });
 

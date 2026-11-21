@@ -149,13 +149,16 @@ async function createAndLogin(role, scope) {
 }
 
 // Urutan menu v1 — harus sama di semua halaman.
+// Sesi 13A: ditambah /kelas.html setelah /generus.html (menu Kelola Kelas).
 const MENU = [
   '/dashboard.html',
   '/generus.html',
+  '/kelas.html',
   '/materi.html',
   '/jadwal.html',
   '/izin-kelola.html',
   '/laporan.html',
+  '/arsip.html',
   '/cetak-qr.html',
   '/akun.html',
 ];
@@ -163,6 +166,7 @@ const MENU = [
 const SEMUA_HALAMAN = [
   'dashboard.html',
   'generus.html',
+  'kelas.html',
   'akun.html',
   'jadwal.html',
   'cetak-qr.html',

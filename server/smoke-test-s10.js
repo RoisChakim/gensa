@@ -326,36 +326,38 @@ async function main() {
     assert.equal(salah.response.status, 404);
   });
 
-  await check('GET /api/izin pertemuan kelompok memuat nama tanpa kode', async () => {
+  // R3 (13C): GET /api/izin tidak lagi memuat nama — nama hanya muncul
+  // setelah verifikasi kode lewat POST /api/izin/verifikasi.
+  await check('GET /api/izin pertemuan kelompok tanpa nama sebelum verifikasi', async () => {
     const result = await request('GET', `/api/izin?t=${tokenKelompok}`);
     assert.equal(result.response.status, 200);
     assert.equal(result.data.pertemuan.id, pertemuanKelompok);
     assert.equal(result.data.pertemuan.tanggal.slice(0, 10), hariIni(1));
     assert.equal(result.data.pertemuan.tingkat, 'kelompok');
-    assert.equal(result.data.generus.length, 3);
-    const nama = result.data.generus.map((row) => row.nama);
-    assert.ok(nama.includes(generus.A.nama));
-    assert.ok(nama.includes(generus.B.nama));
-    assert.ok(nama.includes(generus.C.nama));
+    assert.equal(result.data.generus, undefined);
     assert.ok(!JSON.stringify(result.data).includes(generus.A.kode_manual),
       'kode_manual tidak boleh bocor ke publik.');
     assert.ok(!JSON.stringify(result.data).includes(generus.A.qr_token),
       'qr_token tidak boleh bocor ke publik.');
+    assert.ok(!JSON.stringify(result.data).includes(generus.A.nama),
+      'nama tidak boleh bocor sebelum verifikasi kode.');
   });
 
-  await check('GET /api/izin pertemuan desa berjenjang kelompok lalu nama', async () => {
+  // R3 (13C): tidak ada daftar kelompok/nama sebelum verifikasi kode;
+  // alur baru: masukkan kode dulu lewat POST /api/izin/verifikasi.
+  await check('GET /api/izin pertemuan desa tanpa daftar sebelum verifikasi', async () => {
     const awal = await request('GET', `/api/izin?t=${tokenDesa}`);
     assert.equal(awal.response.status, 200);
     assert.equal(awal.data.pertemuan.tingkat, 'desa');
-    assert.equal(awal.data.generus.length, 0);
-    assert.ok(awal.data.kelompok.some((row) => row.id === kelompokId));
+    assert.equal(awal.data.generus, undefined);
+    assert.equal(awal.data.kelompok, null);
 
     const lanjut = await request(
       'GET',
       `/api/izin?t=${tokenDesa}&kelompok_id=${kelompokId}`
     );
     assert.equal(lanjut.response.status, 200);
-    assert.equal(lanjut.data.generus.length, 3);
+    assert.equal(lanjut.data.generus, undefined);
   });
 
   await check('POST /api/izin dengan kode salah ditolak 404', async () => {

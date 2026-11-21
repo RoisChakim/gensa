@@ -24,6 +24,44 @@
   - Halaman memakai fetch relatif (`/api/...`), jadi jalan di domain apa
     pun.
 
+## Email reset password (SMTP)
+
+Isi variabel berikut di `.env` untuk server lokal atau di pengaturan
+Environment Variables proyek Vercel untuk deploy:
+
+- `SMTP_HOST`: alamat server SMTP penyedia email.
+- `SMTP_PORT`: port SMTP, biasanya `587` atau `465`.
+- `SMTP_SECURE`: isi `0` untuk port `587` dengan STARTTLS, atau `1`
+  untuk TLS langsung pada port `465`.
+- `SMTP_USER`: nama pengguna SMTP, biasanya alamat email pengirim.
+- `SMTP_PASS`: password SMTP atau App Password dari penyedia email.
+- `SMTP_FROM`: alamat pengirim. Boleh dikosongkan agar memakai `SMTP_USER`.
+
+Untuk Gmail, gunakan `smtp.gmail.com`, port `587`, dan `SMTP_SECURE=0`.
+Isi `SMTP_USER` dengan alamat Gmail pengirim. Aktifkan Verifikasi 2 Langkah
+pada akun Google, lalu buat App Password melalui pengaturan keamanan akun.
+Gunakan App Password tersebut untuk `SMTP_PASS`, bukan password akun Google.
+
+Isi `APP_URL` dengan URL HTTPS publik aplikasi agar tautan reset mengarah
+ke situs yang benar. Setelah mengubah konfigurasi, jalankan ulang server
+atau lakukan deploy ulang.
+
+SMTP dianggap terkonfigurasi bila `SMTP_HOST`, `SMTP_USER`, dan `SMTP_PASS`
+terisi. Status ini menunjukkan kelengkapan konfigurasi, bukan hasil uji
+pengiriman email.
+
+Bila SMTP belum dikonfigurasi, permintaan reset tetap berjalan, tetapi
+tautan hanya tampil di log server dan pengguna tidak menerima email.
+Admin akan melihat peringatan di halaman Akun. Pengaturan ini tidak
+disarankan untuk produksi karena tautan reset memberi akses untuk
+mengganti password.
+
+Bila SMTP sudah dikonfigurasi, tautan reset tidak ditulis ke log,
+termasuk ketika pengiriman gagal. Jika email tidak diterima, periksa
+konfigurasi SMTP lalu ajukan reset kembali.
+
+Jangan menaruh kredensial asli di kode, dokumentasi, atau repository.
+
 ## Langkah 1 — Database Neon (gratis, tanpa kartu)
 
 1. Buka https://neon.tech, daftar (gratis, tidak perlu kartu kredit).

@@ -7,142 +7,7 @@
   <title>Dashboard — GENSA</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon-192.png">
-  <style>
-:root{
-  --bg:#F6F1E9; --bg2:#EFE8DA; --card:#FFFDF8; --card2:#FBF7EF;
-  --input:#FFFFFF; --line:#E9DFCE; --line2:#DCCFB6;
-  --lime:#5F7A57; --lime-dim:#7C9A6E;
-  --btn:#8A5A33;
-  --text:#2C2620; --muted:#7A6F61; --muted2:#A79C8B;
-  --danger:#C25E4B; --amber:#8A6D1F; --blue:#5E8A94;
-  --radius:20px; --radius-sm:10px;
-  --font:'Plus Jakarta Sans',Inter,system-ui,-apple-system,'Segoe UI',sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
-button{font-family:var(--font);cursor:pointer}
-input,select,textarea{font-family:var(--font)}
-a{color:var(--lime)}
-::placeholder{color:var(--muted2)}
-#appView{display:none;min-height:100vh}
-.app-layout{display:flex;min-height:100vh}
-.sidebar{width:248px;flex:0 0 248px;background:#FBF7EE;border-right:1px solid var(--line);padding:20px 14px;
-  display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
-.sidebar .brand-row{padding:2px 8px 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
-.brand-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.brand-logo{width:34px;height:42px;border-radius:10px;flex:0 0 34px;overflow:hidden;background:none}
-.brand-logo img{width:100%;height:100%;object-fit:cover;display:block}
-.brand-name{font-size:18px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
-.brand-sub{font-size:12.5px;color:var(--muted)}
-.side-link{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:var(--muted);
-  background:none;border:none;width:100%;text-align:left;font-size:14px;font-weight:600;text-decoration:none}
-.side-link .ic{font-size:17px;width:22px;text-align:center}
-.side-link:hover{background:rgba(124,154,110,.07);color:var(--text)}
-.side-link.active{background:rgba(124,154,110,.13);color:var(--lime)}
-.side-label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted2);padding:14px 12px 6px}
-.side-user{margin-top:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.side-user .nm{font-weight:700;font-size:13.5px}
-.side-user .rl{font-size:12px;color:var(--lime)}
-.side-user button{margin-top:9px;width:100%;background:none;border:1px solid var(--line2);color:var(--muted);
-  border-radius:8px;padding:7px;font-size:12.5px;font-weight:600}
-.main{flex:1;min-width:0;padding:26px 30px 60px}
-.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;flex-wrap:wrap}
-.topbar h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
-.topbar .sub{color:var(--muted);font-size:13.5px;margin-top:3px}
-.scope-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(124,154,110,.09);border:1px solid rgba(124,154,110,.3);
-  color:var(--lime);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:16px 0 22px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.stat .lb{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.stat .vl{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
-.stat .dt{font-size:12.5px;color:var(--muted);margin-top:2px}
-.stat .dt b{color:var(--lime)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px}
-.card h3{font-size:16.5px;font-weight:800;margin-bottom:4px}
-.card .hint{font-size:13px;color:var(--muted);margin-bottom:14px}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
-.toolbar input,.toolbar select{background:var(--input);border:1px solid var(--line2);color:var(--text);
-  border-radius:9px;padding:9px 11px;font-size:13.5px;outline:none;min-width:0}
-.toolbar input:focus,.toolbar select:focus{border-color:var(--lime)}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-.field input,.field select,.field textarea{width:100%;background:var(--input);border:1px solid var(--line2);color:var(--text);
-  border-radius:var(--radius-sm);padding:12px 13px;font-size:14.5px;outline:none}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(124,154,110,.15)}
-.btn{border:1px solid var(--line2);background:var(--input);color:var(--text);border-radius:9px;
-  padding:9px 14px;font-size:13.5px;font-weight:700}
-.btn:hover{border-color:var(--lime)}
-.btn-lime{background:var(--btn);border:none;color:#FFFFFF}
-.btn-ghost{background:none}
-.btn-danger{background:rgba(194,94,75,.09);border-color:rgba(194,94,75,.35);color:#A34A38}
-.btn-sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
-  padding:9px 10px;border-bottom:1px solid var(--line)}
-td{padding:10px;border-bottom:1px solid rgba(120,100,70,.22);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-.tag{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 10px}
-.tag-caberawit{background:rgba(94,138,148,.14);color:#4A6E75}
-.tag-pra{background:rgba(185,138,47,.14);color:#8A6D1F}
-.tag-remaja{background:rgba(124,154,110,.16);color:#4F6B47}
-.tag-nikah{background:rgba(194,94,75,.13);color:#A34A38}
-.tag-hadir{background:rgba(124,154,110,.16);color:#4F6B47}
-.tag-absen{background:rgba(194,94,75,.13);color:#A34A38}
-.tag-info{background:rgba(94,138,148,.14);color:#4A6E75}
-.locked-note{font-size:12.5px;color:var(--amber);margin-top:8px}
-.jadwal-item{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;
-  background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;flex-wrap:wrap}
-.jadwal-item .t{font-weight:700;font-size:14.5px}
-.jadwal-item .m{font-size:12.5px;color:var(--muted);margin-top:3px}
-.wa-box{background:#F7F1E3;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
-.wa-box pre{white-space:pre-wrap;font-family:var(--font);font-size:13.5px;line-height:1.6;color:#4A5D3A;margin:8px 0}
-.wa-box .row{display:flex;gap:8px;flex-wrap:wrap}
-.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
-.qr-card{background:#fff;color:#111;border-radius:12px;padding:14px 10px;text-align:center}
-.qr-card .qr-holder{display:flex;justify-content:center}
-.qr-card .nm{font-weight:800;font-size:13px;margin-top:8px}
-.qr-card .mt{font-size:11px;color:#555}
-.modal-back{position:fixed;inset:0;background:rgba(44,38,32,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
-.modal-back.open{display:flex}
-.modal{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:22px;width:100%;max-width:480px;max-height:90vh;overflow:auto}
-.modal h3{font-size:17px;font-weight:800;margin-bottom:14px}
-.modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-grid .full{grid-column:1/-1}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2C2620;border:1px solid #8A5A33;color:#FFF8EE;border-radius:10px;padding:11px 18px;font-size:13.5px;font-weight:600;z-index:99;display:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
-.empty{color:var(--muted);font-size:13.5px;padding:18px 4px;text-align:center}
-@media (max-width:860px){
-  .sidebar{position:fixed;z-index:40;transform:translateX(-100%);transition:transform .25s}
-  .sidebar.open{transform:none}
-  .main{padding:20px 16px 50px}
-  .menu-btn{display:inline-flex !important}
-  .form-grid{grid-template-columns:1fr}
-}
-.menu-btn{display:none;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;
-  background:var(--input);border:1px solid var(--line2);color:var(--text);font-size:18px}
-
-[hidden]{display:none !important}
-:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
-.sidebar{left:0;overflow-y:auto;height:100vh;height:100dvh}
-.sidebar-close{align-self:flex-end;flex-shrink:0}
-.brand-name{font-size:16px}
-.side-user .nm,.topbar .sub,.jadwal-item{overflow-wrap:anywhere}
-.side-user button:disabled{opacity:.55;cursor:wait}
-.title-row{display:flex;align-items:center;gap:10px}
-.btn-link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
-.quick-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
-.jenjang-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
-.jenjang-count{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px}
-.jenjang-count strong{font-size:20px}
-#startupStatus{max-width:560px;margin:24px auto;padding:18px 20px}
-#errorBox{color:#A34A38;font-size:13.5px;margin:14px 0}
-@media (prefers-reduced-motion:reduce){
-  .sidebar{transition:none}
-}
-  </style>
+    <link rel="stylesheet" href="/app.css">
 </head>
 <body>
   <p id="startupStatus" role="status" aria-live="polite">Memuat dashboard…</p>
@@ -171,6 +36,9 @@ tr:last-child td{border-bottom:none}
         <a class="side-link" href="/generus.html">
           <span class="ic" aria-hidden="true">👥</span> Daftar Generus
         </a>
+        <a class="side-link" id="kelasMenu" href="/kelas.html" hidden>
+          <span class="ic" aria-hidden="true">☷</span> Kelas
+        </a>
         <a class="side-link" href="/materi.html">
           <span class="ic" aria-hidden="true">📖</span> Materi
         </a>
@@ -182,6 +50,9 @@ tr:last-child td{border-bottom:none}
         </a>
         <a class="side-link" href="/laporan.html">
           <span class="ic" aria-hidden="true">💬</span> Laporan WhatsApp
+        </a>
+        <a class="side-link" href="/arsip.html">
+          <span class="ic" aria-hidden="true">🗂</span> Arsip
         </a>
         <a class="side-link" href="/cetak-qr.html">
           <span class="ic" aria-hidden="true">▣</span> Cetak QR Code
@@ -204,6 +75,12 @@ tr:last-child td{border-bottom:none}
               <button class="menu-btn" id="menuBtn" type="button"
                 aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">☰</button>
               <h2 id="pageTitle">Dashboard</h2>
+              <button class="btn" id="notifBell" type="button"
+                aria-controls="notifCard" aria-label="Pemberitahuan">
+                <span aria-hidden="true">🔔</span>
+                Pemberitahuan
+                <span class="tag" id="notifCount" hidden>0</span>
+              </button>
             </div>
             <div class="sub" id="pageSub"></div>
           </div>
@@ -261,6 +138,21 @@ tr:last-child td{border-bottom:none}
             <a class="btn btn-lime btn-link" href="/generus.html">Lihat di Daftar Generus</a>
           </div>
 
+          <div class="card" id="notifCard" tabindex="-1" aria-labelledby="notifHeading">
+            <h3 id="notifHeading">Pemberitahuan</h3>
+            <p class="message" id="notifMessage" role="status"
+              aria-live="polite" hidden></p>
+            <div id="notifList" aria-live="polite" aria-busy="true">
+              <p class="empty">Memuat pemberitahuan…</p>
+            </div>
+            <button class="btn" id="notifMarkAll" type="button" disabled>
+              Tandai semua dibaca
+            </button>
+            <button class="btn btn-link" id="notifMore" type="button" hidden disabled>
+              Lihat semua
+            </button>
+          </div>
+
           <div class="card">
             <h3>Jalan Pintas</h3>
             <div class="quick-links">
@@ -284,7 +176,7 @@ tr:last-child td{border-bottom:none}
 
     const roleLabels = new Map([
       ['admin', 'Admin · akses penuh'],
-      ['daerah', 'Daerah · lihat semua'],
+      ['daerah', 'Daerah'],
       ['desa', 'Desa'],
       ['kelompok', 'Kelompok']
     ]);
@@ -413,6 +305,155 @@ tr:last-child td{border-bottom:none}
       return count;
     }
 
+let batasNotifikasi = 5;
+    let notifikasiSibuk = false;
+
+    const tanggalNotifikasi = new Intl.DateTimeFormat('id-ID', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+
+    function sinkronkanTombolNotifikasi() {
+      const list = document.getElementById('notifList');
+      const sibuk = notifikasiSibuk || list.getAttribute('aria-busy') === 'true';
+
+      for (const button of list.querySelectorAll('button')) {
+        button.disabled = sibuk;
+      }
+
+      document.getElementById('notifMarkAll').disabled =
+        sibuk || list.querySelector('button') === null;
+      document.getElementById('notifMore').disabled = sibuk;
+    }
+
+    async function muatNotifikasi() {
+      const list = document.getElementById('notifList');
+      const message = document.getElementById('notifMessage');
+      const more = document.getElementById('notifMore');
+
+      list.setAttribute('aria-busy', 'true');
+      message.hidden = true;
+      sinkronkanTombolNotifikasi();
+
+      try {
+        const data = await getJSON('/api/notifikasi?batas=' + batasNotifikasi);
+        if (!Array.isArray(data?.notifikasi)) {
+          throw new Error('Data pemberitahuan tidak lengkap.');
+        }
+
+        const notifikasi = data.notifikasi.slice(0, batasNotifikasi);
+        let adaLebih = false;
+
+        // Lima hasil saja belum memastikan ada hasil keenam.
+        if (batasNotifikasi === 5 && notifikasi.length === 5) {
+          const pembanding = await getJSON('/api/notifikasi?batas=6');
+          if (!Array.isArray(pembanding?.notifikasi)) {
+            throw new Error('Data pemberitahuan tidak lengkap.');
+          }
+          adaLebih = pembanding.notifikasi.length > 5;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        if (notifikasi.length === 0) {
+          const empty = document.createElement('p');
+          empty.className = 'empty';
+          empty.textContent = 'Belum ada pemberitahuan.';
+          fragment.append(empty);
+        }
+
+        for (const pemberitahuan of notifikasi) {
+          const item = document.createElement('div');
+          item.className = 'jadwal-item';
+
+          const content = document.createElement('div');
+          const titleLine = document.createElement('p');
+          const title = document.createElement(pemberitahuan.dibaca ? 'span' : 'strong');
+          title.textContent = pemberitahuan.judul;
+          titleLine.append(title);
+
+          const pesan = document.createElement('p');
+          pesan.textContent = pemberitahuan.pesan;
+
+          const waktuLine = document.createElement('p');
+          const waktu = document.createElement('time');
+          const tanggal = new Date(pemberitahuan.created_at);
+
+          if (Number.isNaN(tanggal.getTime())) {
+            waktu.textContent = 'Waktu tidak tersedia';
+          } else {
+            waktu.dateTime = tanggal.toISOString();
+            waktu.textContent = tanggalNotifikasi.format(tanggal);
+          }
+
+          waktuLine.append(waktu);
+          content.append(titleLine, pesan, waktuLine);
+          item.append(content);
+
+          if (!pemberitahuan.dibaca) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn';
+            button.textContent = 'Tandai dibaca';
+            button.disabled = true;
+            button.addEventListener('click', () => {
+              void tandaiNotifikasi(pemberitahuan.id);
+            });
+            item.append(button);
+          }
+
+          fragment.append(item);
+        }
+
+        list.replaceChildren(fragment);
+        more.hidden = !adaLebih;
+      } catch {
+        list.replaceChildren();
+        more.hidden = true;
+        message.textContent = 'Pemberitahuan gagal dimuat. Silakan muat ulang halaman.';
+        message.hidden = false;
+      } finally {
+        list.setAttribute('aria-busy', 'false');
+        sinkronkanTombolNotifikasi();
+      }
+    }
+
+    async function tandaiNotifikasi(id = null) {
+      const list = document.getElementById('notifList');
+      if (notifikasiSibuk || list.getAttribute('aria-busy') === 'true') return;
+
+      notifikasiSibuk = true;
+      const message = document.getElementById('notifMessage');
+      message.hidden = true;
+      sinkronkanTombolNotifikasi();
+
+      try {
+        const path = id === null
+          ? '/api/notifikasi/baca-semua'
+          : '/api/notifikasi/' + encodeURIComponent(String(id)) + '/baca';
+
+        const response = await fetch(path, {
+          method: 'POST',
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+
+        if (!response.ok) {
+          throw new Error('Pemberitahuan belum berhasil ditandai dibaca.');
+        }
+
+        await Promise.all([muatNotifikasi(), loadSummary()]);
+      } catch {
+        message.textContent = 'Pemberitahuan belum berhasil ditandai dibaca. Silakan coba lagi.';
+        message.hidden = false;
+      } finally {
+        notifikasiSibuk = false;
+        sinkronkanTombolNotifikasi();
+      }
+    }
+
     async function loadSummary() {
       try {
         const data = await getJSON('/api/ringkasan');
@@ -422,6 +463,7 @@ tr:last-child td{border-bottom:none}
         const deletePending = apiCount(data.generus.delete_pending);
         const upcoming = apiCount(data.pertemuan_mendatang);
         const permissions = apiCount(data.izin_menunggu);
+        const unread = apiCount(data.notifikasi_belum_dibaca);
 
         document.getElementById('totalValue').textContent = numberFormatter.format(total);
         document.getElementById('totalDetail').textContent =
@@ -437,15 +479,28 @@ tr:last-child td{border-bottom:none}
 
         document.getElementById('permissionValue').textContent = numberFormatter.format(permissions);
         document.getElementById('permissionDetail').textContent = 'Menunggu persetujuan';
+
+        document.getElementById('notifCount').textContent = numberFormatter.format(unread);
+        document.getElementById('notifCount').hidden = false;
+        document.getElementById('notifBell').setAttribute(
+          'aria-label',
+          'Pemberitahuan, ' + numberFormatter.format(unread) + ' belum dibaca'
+        );
       } catch {
         showError('Ringkasan dashboard gagal dimuat. Silakan muat ulang halaman.');
         for (const id of ['totalDetail', 'scheduleDetail', 'pendingDetail', 'permissionDetail']) {
           document.getElementById(id).textContent = 'Data belum tersedia';
         }
+        document.getElementById('notifCount').hidden = true;
+        document.getElementById('notifBell').setAttribute(
+          'aria-label',
+          'Pemberitahuan, jumlah belum tersedia'
+        );
       } finally {
         document.getElementById('statsRow').setAttribute('aria-busy', 'false');
       }
     }
+
 
     async function loadJenjang() {
       const container = document.getElementById('jenjangRow');
@@ -714,7 +769,7 @@ tr:last-child td{border-bottom:none}
       document.getElementById('scopeBadge').textContent = roleLabel;
       document.getElementById('pageSub').textContent = 'Selamat datang, ' + user.email + '.';
 
-      for (const id of ['accountMenu', 'accountShortcut', 'pendingCard']) {
+      for (const id of ['accountMenu', 'accountShortcut', 'pendingCard', 'kelasMenu']) {
         const element = document.getElementById(id);
         if (isAdmin) {
           element.hidden = false;
@@ -727,7 +782,35 @@ tr:last-child td{border-bottom:none}
       document.getElementById('appView').style.display = 'block';
       setMenuOpen(false);
 
-      const requests = [loadSummary(), loadJenjang(), loadUpcoming()];
+      const notifBell = document.getElementById('notifBell');
+      const notifScopeBadge = document.querySelector(
+        '.topbar .scope-badge, .topbar #scopeBadge'
+      );
+
+      if (notifScopeBadge) {
+        notifScopeBadge.insertAdjacentElement('afterend', notifBell);
+      }
+
+      notifBell.addEventListener('click', () => {
+        const card = document.getElementById('notifCard');
+        card.scrollIntoView({ block: 'start' });
+        card.focus({ preventScroll: true });
+      });
+
+      document.getElementById('notifMarkAll').addEventListener('click', () => {
+        void tandaiNotifikasi();
+      });
+
+      document.getElementById('notifMore').addEventListener('click', () => {
+        batasNotifikasi = 20;
+        void muatNotifikasi();
+      });
+
+      const requests = [
+        loadSummary().then(() => muatNotifikasi()),
+        loadJenjang(),
+        loadUpcoming()
+      ];
       if (isAdmin) requests.push(loadPending());
       await Promise.all(requests);
     }

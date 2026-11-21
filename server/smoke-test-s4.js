@@ -3,6 +3,36 @@
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
+const zlib = require('node:zlib');
+
+function bacaDocumentXml(buffer) {
+  const signature = Buffer.from('PK\x03\x04');
+  let offset = buffer.indexOf(signature);
+
+  while (offset !== -1) {
+    assert.ok(offset + 30 <= buffer.length, 'Header ZIP tidak lengkap.');
+    const method = buffer.readUInt16LE(offset + 8);
+    const compressedSize = buffer.readUInt32LE(offset + 18);
+    const nameLength = buffer.readUInt16LE(offset + 26);
+    const extraLength = buffer.readUInt16LE(offset + 28);
+    const nameStart = offset + 30;
+    const dataStart = nameStart + nameLength + extraLength;
+    const dataEnd = dataStart + compressedSize;
+    assert.ok(dataEnd <= buffer.length, 'Isi ZIP tidak lengkap.');
+
+    const name = buffer.subarray(nameStart, nameStart + nameLength).toString('utf8');
+    if (name === 'word/document.xml') {
+      const data = buffer.subarray(dataStart, dataEnd);
+      if (method === 8) return zlib.inflateRawSync(data).toString('utf8');
+      if (method === 0) return data.toString('utf8');
+      throw new Error('Metode kompresi word/document.xml tidak didukung.');
+    }
+
+    offset = buffer.indexOf(signature, dataEnd);
+  }
+
+  throw new Error('word/document.xml tidak ditemukan.');
+}
 const path = require('node:path');
 const { Client } = require('pg');
 
@@ -391,6 +421,14 @@ async function main() {
     assert.ok(result.buffer, 'Isi docx tidak terbaca.');
     assert.equal(result.buffer.subarray(0, 2).toString(), 'PK');
     assert.ok(result.buffer.length > 1000, 'Berkas docx terlalu kecil.');
+
+    const documentXml = bacaDocumentXml(result.buffer);
+    assert.match(documentXml, /Laporan Kehadiran Generus/);
+    assert.match(documentXml, /Periode:/);
+    assert.match(documentXml, /Tanggal:/);
+    assert.doesNotMatch(documentXml, /Wilayah:/);
+    assert.doesNotMatch(documentXml, /Rekap Kehadiran/);
+    assert.doesNotMatch(documentXml, /Rincian per Generus/);
   });
 
   await check('Validasi parameter laporan ditolak dengan 400', async () => {

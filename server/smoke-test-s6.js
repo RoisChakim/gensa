@@ -338,7 +338,7 @@ async function main() {
     assert.equal(r2.response.status, 400);
   });
 
-  await check('Nilai boleh diubah 2 kali, ke-3 ditolak, Admin membuka lagi', async () => {
+  await check('Nilai boleh diubah 2 kali, ke-3 ditolak, Admin mengubah tanpa reset count (D2)', async () => {
     const c1 = await nilai(generus.E.id, tugas.doa1.id, 'belum');
     assert.equal(c1.response.status, 200);
     assert.equal(c1.data.penilaian.diubah_count, 1);
@@ -350,12 +350,20 @@ async function main() {
     const c3 = await nilai(generus.E.id, tugas.doa1.id, 'belum');
     assert.equal(c3.response.status, 403);
 
+    // D2 (Sesi 13D): Admin mengubah nilai TANPA me-reset diubah_count
+    // (dulu: reset ke 0). Kelompok tetap tidak bisa mengubah lagi
+    // setelah Admin mengubah — hitungan tetap 2.
     const olehAdmin = await nilai(
       generus.E.id, tugas.doa1.id, 'belum', adminCookie
     );
     assert.equal(olehAdmin.response.status, 200);
-    assert.equal(olehAdmin.data.penilaian.diubah_count, 0);
+    assert.equal(olehAdmin.data.penilaian.diubah_count, 2);
+    assert.equal(olehAdmin.data.penilaian.diubah_oleh_admin, true);
     assert.equal(olehAdmin.data.penilaian.nilai, 'belum');
+
+    const c4 = await nilai(generus.E.id, tugas.doa1.id, 'hafal');
+    assert.equal(c4.response.status, 403,
+      'Setelah Admin mengubah, kelompok tetap dibatasi 2 kali.');
 
     const desa = await nilai(
       generus.E.id, tugas.doa1.id, 'hafal', desaLainCookie

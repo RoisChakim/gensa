@@ -6,155 +6,19 @@
   <meta name="theme-color" content="#F6F1E9">
   <title>Daftar Generus — GENSA</title>
   <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/app.css">
   <style>
-:root{
-  --bg:#F6F1E9; --bg2:#EFE8DA; --card:#FFFDF8; --card2:#FBF7EF;
-  --input:#FFFFFF; --line:#E9DFCE; --line2:#DCCFB6;
-  --lime:#5F7A57; --lime-dim:#7C9A6E;
-  --btn:#8A5A33;
-  --text:#2C2620; --muted:#7A6F61; --muted2:#A79C8B;
-  --danger:#C25E4B; --amber:#8A6D1F; --blue:#5E8A94;
-  --radius:20px; --radius-sm:10px;
-  --font:'Plus Jakarta Sans',Inter,system-ui,-apple-system,'Segoe UI',sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
-button{font-family:var(--font);cursor:pointer}
-input,select,textarea{font-family:var(--font)}
-a{color:var(--lime)}
-::placeholder{color:var(--muted2)}
-#appView{display:none;min-height:100vh}
-.app-layout{display:flex;min-height:100vh}
-.sidebar{width:248px;flex:0 0 248px;background:#FBF7EE;border-right:1px solid var(--line);padding:20px 14px;
-  display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
-.sidebar .brand-row{padding:2px 8px 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
-.brand-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.brand-logo{width:34px;height:42px;border-radius:10px;flex:0 0 34px;overflow:hidden;background:none}
-.brand-logo img{width:100%;height:100%;object-fit:cover;display:block}
-.brand-name{font-size:18px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
-.brand-sub{font-size:12.5px;color:var(--muted)}
-.side-link{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:var(--muted);
-  background:none;border:none;width:100%;text-align:left;font-size:14px;font-weight:600;text-decoration:none}
-.side-link .ic{font-size:17px;width:22px;text-align:center}
-.side-link:hover{background:rgba(124,154,110,.07);color:var(--text)}
-.side-link.active{background:rgba(124,154,110,.13);color:var(--lime)}
-.side-label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted2);padding:14px 12px 6px}
-.side-user{margin-top:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.side-user .nm{font-weight:700;font-size:13.5px}
-.side-user .rl{font-size:12px;color:var(--lime)}
-.side-user button{margin-top:9px;width:100%;background:none;border:1px solid var(--line2);color:var(--muted);
-  border-radius:8px;padding:7px;font-size:12.5px;font-weight:600}
-.main{flex:1;min-width:0;padding:26px 30px 60px}
-.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;flex-wrap:wrap}
-.topbar h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
-.topbar .sub{color:var(--muted);font-size:13.5px;margin-top:3px}
-.scope-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(124,154,110,.09);border:1px solid rgba(124,154,110,.3);
-  color:var(--lime);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:16px 0 22px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.stat .lb{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.stat .vl{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
-.stat .dt{font-size:12.5px;color:var(--muted);margin-top:2px}
-.stat .dt b{color:var(--lime)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px}
-.card h3{font-size:16.5px;font-weight:800;margin-bottom:4px}
-.card .hint{font-size:13px;color:var(--muted);margin-bottom:14px}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
-.toolbar input,.toolbar select{background:var(--input);border:1px solid var(--line2);color:var(--text);
-  border-radius:9px;padding:9px 11px;font-size:13.5px;outline:none;min-width:0}
-.toolbar input:focus,.toolbar select:focus{border-color:var(--lime)}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-.field input,.field select,.field textarea{width:100%;background:var(--input);border:1px solid var(--line2);color:var(--text);
-  border-radius:var(--radius-sm);padding:12px 13px;font-size:14.5px;outline:none}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(124,154,110,.15)}
-.btn{border:1px solid var(--line2);background:var(--input);color:var(--text);border-radius:9px;
-  padding:9px 14px;font-size:13.5px;font-weight:700}
-.btn:hover{border-color:var(--lime)}
-.btn-lime{background:var(--btn);border:none;color:#FFFFFF}
-.btn-ghost{background:none}
-.btn-danger{background:rgba(194,94,75,.09);border-color:rgba(194,94,75,.35);color:#A34A38}
-.btn-sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
-  padding:9px 10px;border-bottom:1px solid var(--line)}
-td{padding:10px;border-bottom:1px solid rgba(120,100,70,.22);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-.tag{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 10px}
-.tag-caberawit{background:rgba(94,138,148,.14);color:#4A6E75}
-.tag-pra{background:rgba(185,138,47,.14);color:#8A6D1F}
-.tag-remaja{background:rgba(124,154,110,.16);color:#4F6B47}
-.tag-nikah{background:rgba(194,94,75,.13);color:#A34A38}
-.tag-hadir{background:rgba(124,154,110,.16);color:#4F6B47}
-.tag-absen{background:rgba(194,94,75,.13);color:#A34A38}
-.tag-info{background:rgba(94,138,148,.14);color:#4A6E75}
-.locked-note{font-size:12.5px;color:var(--amber);margin-top:8px}
-.jadwal-item{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;
-  background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;flex-wrap:wrap}
-.jadwal-item .t{font-weight:700;font-size:14.5px}
-.jadwal-item .m{font-size:12.5px;color:var(--muted);margin-top:3px}
-.wa-box{background:#F7F1E3;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
-.wa-box pre{white-space:pre-wrap;font-family:var(--font);font-size:13.5px;line-height:1.6;color:#4A5D3A;margin:8px 0}
-.wa-box .row{display:flex;gap:8px;flex-wrap:wrap}
-.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
-.qr-card{background:#fff;color:#111;border-radius:12px;padding:14px 10px;text-align:center}
-.qr-card .qr-holder{display:flex;justify-content:center}
-.qr-card .nm{font-weight:800;font-size:13px;margin-top:8px}
-.qr-card .mt{font-size:11px;color:#555}
-.modal-back{position:fixed;inset:0;background:rgba(44,38,32,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
-.modal-back.open{display:flex}
-.modal{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:22px;width:100%;max-width:480px;max-height:90vh;overflow:auto}
-.modal h3{font-size:17px;font-weight:800;margin-bottom:14px}
-.modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-grid .full{grid-column:1/-1}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2C2620;border:1px solid #8A5A33;color:#FFF8EE;border-radius:10px;padding:11px 18px;font-size:13.5px;font-weight:600;z-index:99;display:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
-.empty{color:var(--muted);font-size:13.5px;padding:18px 4px;text-align:center}
-@media (max-width:860px){
-  .sidebar{position:fixed;z-index:40;transform:translateX(-100%);transition:transform .25s}
-  .sidebar.open{transform:none}
-  .main{padding:20px 16px 50px}
-  .menu-btn{display:inline-flex !important}
-  .form-grid{grid-template-columns:1fr}
-}
-.menu-btn{display:none;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;
-  background:var(--input);border:1px solid var(--line2);color:var(--text);font-size:18px}
-
-[hidden]{display:none !important}
-:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
-.startup{max-width:480px;margin:40px auto;padding:20px}
-.sidebar{overflow-y:auto}
-.side-user .nm{overflow-wrap:anywhere}
-#view-generus{margin-top:20px}
-.toolbar input{flex:1 1 210px}
-.toolbar select{flex:1 1 170px;max-width:100%}
-.table-wrap{overflow-x:auto}
-table{min-width:1100px}
-th,.tag{white-space:nowrap}
-.person-name{font-weight:700;overflow-wrap:anywhere}
-.reason{font-size:12px;color:var(--muted);margin-top:4px;max-width:280px;white-space:pre-wrap;overflow-wrap:anywhere}
-.row-actions{display:flex;gap:6px;flex-wrap:wrap;min-width:160px}
-.message{padding:11px 13px;border:1px solid var(--line2);border-radius:9px;background:var(--card2);margin-bottom:14px;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
-.message.success{color:#4F6B47;border-color:rgba(124,154,110,.35)}
-.message.error{color:#A34A38;border-color:rgba(194,94,75,.35)}
-#retryBtn{margin-bottom:14px}
-fieldset{border:0;min-width:0}
-.modal{max-width:600px}
-.modal .field{margin-bottom:0}
-.modal .actions{flex-wrap:wrap}
-.toast{background:var(--card);color:var(--text);box-shadow:0 8px 24px rgba(138,90,51,.15)}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media (max-width:480px){
-  .toolbar input,.toolbar select,.toolbar>.btn{flex-basis:100%;width:100%}
-  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .stat{padding:12px}
-  .stat .lb{font-size:10px;letter-spacing:.03em}
-  .card{padding:16px 12px}
-  .modal-back{padding:12px}
-  .modal{padding:18px}
-}
+    .startup{max-width:480px;margin:40px auto;padding:20px}
+    #view-generus{margin-top:20px}
+    .toolbar input{flex:1 1 210px}
+    .toolbar select{flex:1 1 170px;max-width:100%}
+    table{min-width:1100px}
+    th,.tag{white-space:nowrap}
+    .person-name{font-weight:700;overflow-wrap:anywhere}
+    .reason{font-size:12px;color:var(--muted);margin-top:4px;max-width:280px;white-space:pre-wrap;overflow-wrap:anywhere}
+    .row-actions{display:flex;gap:6px;flex-wrap:wrap;min-width:160px}
+    #retryBtn{margin-bottom:14px}
+    .modal{max-width:600px}
   </style>
 </head>
 <body>
@@ -178,10 +42,12 @@ fieldset{border:0;min-width:0}
         </div>
         <a class="side-link" href="/dashboard.html"><span class="ic" aria-hidden="true">▦</span> Dashboard</a>
         <a class="side-link active" href="/generus.html" aria-current="page"><span class="ic" aria-hidden="true">👥</span> Daftar Generus</a>
+        <a class="side-link" id="kelasMenu" href="/kelas.html" hidden><span class="ic" aria-hidden="true">☷</span> Kelas</a>
         <a class="side-link" href="/materi.html"><span class="ic" aria-hidden="true">📖</span> Materi</a>
         <a class="side-link" href="/jadwal.html"><span class="ic" aria-hidden="true">🗓</span> Jadwal Mengaji</a>
         <a class="side-link" href="/izin-kelola.html"><span class="ic" aria-hidden="true">✉️</span> Izin</a>
         <a class="side-link" href="/laporan.html"><span class="ic" aria-hidden="true">💬</span> Laporan WhatsApp</a>
+<a class="side-link" href="/arsip.html"><span class="ic" aria-hidden="true">🗂</span> Arsip</a>
         <a class="side-link" href="/cetak-qr.html"><span class="ic" aria-hidden="true">▣</span> Cetak QR Code</a>
         <a class="side-link" href="/akun.html" id="akunLink" hidden><span class="ic" aria-hidden="true">⚙</span> Akun</a>
         <div class="side-user">
@@ -235,6 +101,9 @@ fieldset{border:0;min-width:0}
               <button class="btn btn-lime" id="addBtn" type="button" hidden disabled>+ Tambah Generus</button>
             </div>
 
+            <div class="card" id="notifBanner" role="region"
+              aria-label="Pemberitahuan pengajuan generus"
+              aria-live="polite" aria-busy="false" hidden></div>
             <p class="message" id="pageMessage" role="status" aria-live="polite" aria-atomic="true" hidden></p>
             <button class="btn btn-sm" id="retryBtn" type="button" hidden>Muat ulang daftar</button>
 
@@ -305,8 +174,12 @@ fieldset{border:0;min-width:0}
               </select>
             </div>
             <div class="field">
-              <label for="kelasSekolah">Kelas sekolah</label>
-              <input id="kelasSekolah" name="kelas_sekolah" type="text" placeholder="Kelas 3 SD / XII RPL 1 / Semester 3" required>
+              <label for="kelasId">Kelas sekolah</label>
+              <select id="kelasId" name="kelas_id" required disabled
+                aria-describedby="kelasLoadError">
+                <option value="">Pilih tingkat dulu</option>
+              </select>
+              <p id="kelasLoadError" class="reason" role="alert" aria-live="polite" hidden></p>
             </div>
             <div class="field full">
               <label for="ortuNama">Nama orang tua</label>
@@ -333,6 +206,16 @@ fieldset{border:0;min-width:0}
           <button class="btn btn-lime" id="saveBtn" type="submit">Kirim pengajuan</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div class="modal-back" id="riwayatModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="riwayatTitle" tabindex="-1">
+      <h3 id="riwayatTitle">Riwayat Kelas</h3>
+      <div id="riwayatBody" style="margin-top:14px"></div>
+      <div class="actions">
+        <button class="btn btn-ghost" id="riwayatCloseBtn" type="button">Tutup</button>
+      </div>
     </div>
   </div>
 
@@ -497,7 +380,7 @@ fieldset{border:0;min-width:0}
     function updateScope() {
       let label = roleNames.get(user.role);
       if (user.role === 'admin') label = 'Admin · akses penuh';
-      if (user.role === 'daerah') label = 'Daerah · lingkup daerah';
+      if (user.role === 'daerah') label = 'Daerah';
       if (user.role === 'desa') {
         const desa = wilayah.desa.find((item) => sameId(item.id, user.desa_id));
         label = desa ? 'Desa · ' + desa.nama : 'Desa · lingkup desamu';
@@ -626,6 +509,56 @@ fieldset{border:0;min-width:0}
       return button;
     }
 
+    async function unggahFoto(item) {
+      if (busy || loading || !loaded) return;
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/jpeg,image/png';
+      input.addEventListener('change', async () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+          showMessage('Foto harus JPG atau PNG.', 'error');
+          return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+          showMessage('Foto maksimal 2 MB.', 'error');
+          return;
+        }
+        busy = true;
+        syncControls();
+        try {
+          const response = await fetch(generusPath(item, 'foto'), {
+            method: 'POST',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { 'Content-Type': file.type },
+            body: file,
+          });
+          if (response.status === 401) {
+            redirectToLogin();
+            return;
+          }
+          if (!response.ok) {
+            let message = 'Unggah foto gagal.';
+            try {
+              const data = await response.json();
+              if (typeof data?.error === 'string') message = data.error;
+            } catch (error) {}
+            throw new Error(message);
+          }
+          await loadData();
+          showMessage('Foto berhasil diunggah.');
+        } catch (error) {
+          if (!redirecting) showMessage(errorMessage(error), 'error');
+        } finally {
+          busy = false;
+          syncControls();
+        }
+      });
+      input.click();
+    }
+
     function actionsCell(item) {
       const cell = document.createElement('td');
       const actions = element('div', 'row-actions');
@@ -669,6 +602,13 @@ fieldset{border:0;min-width:0}
 
       if (ownsKelompok(item) && item.status === 'rejected') {
         actions.append(actionButton('Perbaiki & ajukan ulang', '', () => openForm(item)));
+      }
+
+      if (item.status === 'approved') {
+        actions.append(actionButton('Riwayat kelas', '', () => openRiwayat(item)));
+      }
+      if (ownsKelompok(item) && item.status === 'approved') {
+        actions.append(actionButton('Unggah foto', '', () => unggahFoto(item)));
       }
 
       if (actions.childElementCount) cell.append(actions);
@@ -727,7 +667,7 @@ fieldset{border:0;min-width:0}
           element('td', '', displayValue(item.kode_manual)),
           element('td', '', gender),
           element('td', '', ageLabel(item.tanggal_lahir)),
-          element('td', '', displayValue(item.kelas_sekolah)),
+          element('td', '', displayValue(item.kelas_nama || item.kelas_sekolah)),
           element('td', '', formatBirthDate(item.tanggal_lahir)),
           tagCell(item.jenjang, jenjangInfo),
           element('td', '', displayValue(item.kelompok_nama)),
@@ -768,6 +708,113 @@ fieldset{border:0;min-width:0}
       }
     }
 
+let notifBannerSibuk = false;
+    let notifBannerUrutan = 0;
+
+    async function muatNotifikasi() {
+      const banner = $('notifBanner');
+      const urutan = ++notifBannerUrutan;
+
+      banner.setAttribute('aria-busy', 'true');
+      for (const button of banner.querySelectorAll('button')) {
+        button.disabled = true;
+      }
+
+      try {
+        const data = await api('/api/notifikasi?belum_dibaca=1&batas=5');
+        if (urutan !== notifBannerUrutan) return;
+
+        if (!Array.isArray(data?.notifikasi)) {
+          throw new Error('Data pemberitahuan tidak lengkap.');
+        }
+
+        const notifikasi = data.notifikasi.filter((item) =>
+          item.dibaca === false &&
+          (item.jenis === 'generus_disetujui' || item.jenis === 'generus_ditolak')
+        );
+
+        const fragment = document.createDocumentFragment();
+
+        if (notifikasi.length > 0) {
+          const heading = document.createElement('h3');
+          heading.textContent = 'Pemberitahuan';
+          fragment.append(heading);
+        }
+
+        for (const pemberitahuan of notifikasi) {
+          const item = document.createElement('div');
+          item.className = 'jadwal-item';
+
+          const content = document.createElement('div');
+          const titleLine = document.createElement('p');
+          const title = document.createElement('strong');
+          title.textContent = pemberitahuan.judul;
+          titleLine.append(title);
+
+          const pesan = document.createElement('p');
+          pesan.textContent = pemberitahuan.pesan;
+          content.append(titleLine, pesan);
+
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'btn';
+          button.textContent = 'Tandai dibaca';
+          button.disabled = notifBannerSibuk;
+          button.addEventListener('click', () => {
+            void tandaiNotifikasiDibaca(pemberitahuan.id);
+          });
+
+          item.append(content, button);
+          fragment.append(item);
+        }
+
+        banner.replaceChildren(fragment);
+        banner.hidden = notifikasi.length === 0;
+      } catch {
+        if (urutan !== notifBannerUrutan || redirecting) return;
+
+        const message = document.createElement('p');
+        message.className = 'message';
+        message.textContent = 'Pemberitahuan gagal dimuat. Silakan muat ulang halaman.';
+        banner.replaceChildren(message);
+        banner.hidden = false;
+      } finally {
+        if (urutan === notifBannerUrutan) {
+          banner.setAttribute('aria-busy', 'false');
+          for (const button of banner.querySelectorAll('button')) {
+            button.disabled = notifBannerSibuk;
+          }
+        }
+      }
+    }
+
+    async function tandaiNotifikasiDibaca(id) {
+      const banner = $('notifBanner');
+      if (notifBannerSibuk || banner.getAttribute('aria-busy') === 'true') return;
+
+      notifBannerSibuk = true;
+      for (const button of banner.querySelectorAll('button')) {
+        button.disabled = true;
+      }
+
+      try {
+        await api('/api/notifikasi/' + encodeURIComponent(String(id)) + '/baca', {
+          method: 'POST',
+          body: {}
+        });
+        await muatNotifikasi();
+      } catch (error) {
+        if (!redirecting) {
+          showMessage(errorMessage(error), 'error');
+        }
+      } finally {
+        notifBannerSibuk = false;
+        for (const button of banner.querySelectorAll('button')) {
+          button.disabled = banner.getAttribute('aria-busy') === 'true';
+        }
+      }
+    }
+
     async function loadData() {
       loading = true;
       $('retryBtn').hidden = true;
@@ -778,7 +825,8 @@ fieldset{border:0;min-width:0}
       try {
         const [wilayahData, generusData] = await Promise.all([
           api('/api/wilayah'),
-          api('/api/generus')
+          api('/api/generus'),
+          muatNotifikasi()
         ]);
         if (!Array.isArray(wilayahData?.desa) ||
             !Array.isArray(wilayahData?.kelompok) ||
@@ -805,6 +853,7 @@ fieldset{border:0;min-width:0}
         syncControls();
       }
     }
+
 
     function generusPath(item, action) {
       return '/api/generus/' + encodeURIComponent(String(item.id)) + '/' + action;
@@ -859,7 +908,131 @@ fieldset{border:0;min-width:0}
       }
     }
 
-    function openForm(item = null) {
+    // Kelas (M7, Sesi 13A): dropdown kelas per jenjang, dimuat dari /api/kelas.
+    const jenjangDariTingkat = {
+      paud: 'caberawit', sd: 'caberawit', smp: 'pra_remaja',
+      sma: 'remaja', kuliah: 'usia_nikah', kerja: 'usia_nikah'
+    };
+    let kelasRequest = 0;
+
+    function tampilkanErrorKelas(message) {
+      const box = $('kelasLoadError');
+      box.textContent = message || '';
+      box.hidden = !message;
+    }
+
+    async function muatKelas(selectedId = null) {
+      const request = ++kelasRequest;
+      const jenjang = jenjangDariTingkat[$('tingkat').value];
+      const select = $('kelasId');
+      select.disabled = true;
+      select.setCustomValidity('');
+      tampilkanErrorKelas('');
+
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = jenjang ? 'Memuat kelas…' : 'Pilih tingkat dulu';
+      select.replaceChildren(placeholder);
+      if (!jenjang) return false;
+
+      try {
+        const params = new URLSearchParams({ jenjang, aktif: '1' });
+        const data = await api('/api/kelas?' + params.toString());
+        if (request !== kelasRequest) return false;
+        if (!Array.isArray(data.kelas)) throw new Error('Data kelas tidak valid.');
+
+        placeholder.textContent = 'Pilih kelas';
+        const fragment = document.createDocumentFragment();
+        for (const kelas of data.kelas) {
+          const option = document.createElement('option');
+          option.value = String(kelas.id);
+          option.textContent = kelas.nama;
+          fragment.appendChild(option);
+        }
+        select.appendChild(fragment);
+        select.disabled = false;
+
+        if (selectedId !== null) {
+          const value = String(selectedId);
+          const exists = Array.from(select.options).some((o) => o.value === value);
+          select.value = exists ? value : '';
+        }
+        if (!data.kelas.length) {
+          tampilkanErrorKelas('Belum ada kelas aktif pada jenjang ini.');
+        } else if (selectedId !== null && !select.value) {
+          tampilkanErrorKelas('Kelas sebelumnya tidak aktif. Pilih kelas yang tersedia.');
+        }
+        return true;
+      } catch (error) {
+        if (request !== kelasRequest) return false;
+        placeholder.textContent = 'Kelas belum tersedia';
+        tampilkanErrorKelas(error.message);
+        return false;
+      }
+    }
+
+    function ambilKelasId() {
+      const value = $('kelasId').value;
+      const id = Number(value);
+      if ($('kelasId').disabled || !/^[1-9]\d*$/.test(value)
+        || !Number.isSafeInteger(id) || id > 2147483647) {
+        throw new Error('Pilih kelas terlebih dahulu.');
+      }
+      return id;
+    }
+
+    async function isiKelasSaatBuka(item = null) {
+      $('tingkat').value = item ? item.tingkat : '';
+      return muatKelas(item ? item.kelas_id ?? null : null);
+    }
+
+    // Riwayat kelas (M8, Sesi 13A).
+    async function openRiwayat(item) {
+      if (busy || loading || !loaded) return;
+      const modal = $('riwayatModal');
+      const body = $('riwayatBody');
+      const title = $('riwayatTitle');
+      title.textContent = 'Riwayat Kelas — ' + (item.nama || '');
+      body.replaceChildren(element('p', 'empty', 'Memuat riwayat kelas…'));
+      previousFocus = document.activeElement;
+      closeMenu();
+      $('appView').inert = true;
+      modal.hidden = false;
+      modal.classList.add('open');
+      try {
+        const data = await api('/api/generus/' + item.id + '/riwayat-kelas');
+        const list = Array.isArray(data.riwayat) ? data.riwayat : [];
+        if (!list.length) {
+          body.replaceChildren(element('p', 'empty', 'Belum ada perubahan kelas.'));
+          return;
+        }
+        const fragment = document.createDocumentFragment();
+        for (const entry of list) {
+          const row = element('div', 'jadwal-item');
+          const left = document.createElement('div');
+          left.append(
+            element('div', 't', (entry.kelas_lama || '—') + ' → ' + entry.kelas_baru),
+            element('div', 'm', formatBirthDate(entry.created_at) + ' · oleh ' + (entry.diubah_oleh_nama || '—'))
+          );
+          row.append(left);
+          fragment.append(row);
+        }
+        body.replaceChildren(fragment);
+      } catch (error) {
+        body.replaceChildren(element('p', 'empty', error.message));
+      }
+    }
+
+    function closeRiwayat() {
+      const modal = $('riwayatModal');
+      modal.classList.remove('open');
+      modal.hidden = true;
+      $('appView').inert = false;
+      if (previousFocus?.isConnected && !previousFocus.disabled) previousFocus.focus();
+      else $('tableRegion').focus();
+    }
+
+    async function openForm(item = null) {
       if (user.role !== 'kelompok' || busy || loading || !loaded) return;
       if (item && (!ownsKelompok(item) || item.status !== 'rejected')) return;
 
@@ -877,12 +1050,11 @@ fieldset{border:0;min-width:0}
         $('nama').value = item.nama ?? '';
         $('tanggalLahir').value = birthDate(item.tanggal_lahir)?.value ?? '';
         $('jenisKelamin').value = item.jenis_kelamin ?? '';
-        $('tingkat').value = item.tingkat ?? '';
-        $('kelasSekolah').value = item.kelas_sekolah ?? '';
         $('ortuNama').value = item.ortu_nama ?? '';
         $('ortuHubungan').value = String(item.ortu_hubungan ?? '').trim().toLowerCase();
         $('ortuHp').value = item.ortu_hp ?? '';
       }
+      await isiKelasSaatBuka(item);
 
       closeMenu();
       previousOverflow = document.body.style.overflow;
@@ -910,15 +1082,34 @@ fieldset{border:0;min-width:0}
       }
     }
 
+    $('tingkat').addEventListener('change', () => { void muatKelas(); });
+    $('kelasId').addEventListener('change', () => {
+      $('kelasId').setCustomValidity('');
+      tampilkanErrorKelas('');
+    });
+
     $('generusForm').addEventListener('submit', (event) => {
       event.preventDefault();
       if (user.role !== 'kelompok' || busy || loading || !loaded) return;
       if (!$('generusForm').reportValidity()) return;
 
+      let kelasId;
+      try {
+        kelasId = ambilKelasId();
+      } catch (error) {
+        showFormError(error.message);
+        if ($('kelasId').disabled) $('tingkat').focus();
+        else {
+          $('kelasId').setCustomValidity(error.message);
+          $('kelasId').reportValidity();
+        }
+        return;
+      }
+
       const body = {
         nama: $('nama').value.trim(),
         tanggal_lahir: $('tanggalLahir').value,
-        kelas_sekolah: $('kelasSekolah').value.trim(),
+        kelas_id: kelasId,
         tingkat: $('tingkat').value,
         jenis_kelamin: $('jenisKelamin').value,
         ortu_nama: $('ortuNama').value.trim(),
@@ -960,6 +1151,10 @@ fieldset{border:0;min-width:0}
 
     $('addBtn').addEventListener('click', () => openForm());
     $('cancelBtn').addEventListener('click', () => closeForm());
+    $('riwayatCloseBtn').addEventListener('click', () => closeRiwayat());
+    $('riwayatModal').addEventListener('click', (event) => {
+      if (event.target === $('riwayatModal')) closeRiwayat();
+    });
     $('generusModal').addEventListener('click', (event) => {
       if (event.target === $('generusModal')) closeForm();
     });
@@ -1084,6 +1279,7 @@ fieldset{border:0;min-width:0}
 
         $('userName').textContent = user.email || 'Pengguna';
         $('akunLink').hidden = user.role !== 'admin';
+        $('kelasMenu').hidden = user.role !== 'admin';
         $('addBtn').hidden = user.role !== 'kelompok';
 
         if (user.role === 'kelompok') {

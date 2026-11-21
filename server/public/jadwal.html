@@ -5,133 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Jadwal Pengajian — GENSA</title>
   <link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#8A5A33">
-  <style>
-    :root {
-      color-scheme: light;
-      font-family: system-ui, sans-serif;
-      color: #49392d;
-      background: #F6F1E9;
-      --brown: #8A5A33;
-      --sage: #5F7A57;
-      --sage-light: #7C9A6E;
-    }
-
-    * { box-sizing: border-box; }
-    body { margin: 0; }
-    main { max-width: 850px; margin: auto; padding: 24px 16px 48px; }
-    h1 { margin: 0 0 8px; color: var(--brown); font-size: 1.8rem; }
-    h2 { margin: 0 0 18px; font-size: 1.25rem; }
-    h3 { margin: 0; font-size: 1.1rem; }
-    p { line-height: 1.6; }
-    button, input, select { font: inherit; }
-    button, input:not([type="checkbox"]), select { min-height: 44px; }
-    button {
-      padding: 10px 16px;
-      border: 1px solid var(--sage);
-      border-radius: 10px;
-      background: var(--sage);
-      color: white;
-      cursor: pointer;
-    }
-    button.secondary {
-      color: var(--brown);
-      background: #fffdf8;
-      border-color: var(--brown);
-    }
-    button:disabled { opacity: .6; cursor: wait; }
-    :focus-visible { outline: 3px solid var(--brown); outline-offset: 3px; }
-    input:not([type="checkbox"]), select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #a99580;
-      border-radius: 8px;
-      background: #fffdf8;
-      color: inherit;
-    }
-    input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      flex: 0 0 auto;
-      accent-color: var(--sage);
-    }
-    .panel, article {
-      padding: 20px;
-      border: 1px solid #d9cdbd;
-      border-radius: 14px;
-      background: #fffdf8;
-    }
-    .panel { margin: 24px 0; }
-    article + article { margin-top: 14px; }
-    form { display: grid; gap: 18px; }
-    .field { display: grid; gap: 7px; }
-    fieldset {
-      min-width: 0;
-      margin: 0;
-      padding: 12px;
-      border: 1px solid #d9cdbd;
-      border-radius: 10px;
-    }
-    legend { padding: 0 6px; }
-    .checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .check {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      min-height: 44px;
-      cursor: pointer;
-    }
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
-    .meta { margin: 8px 0; overflow-wrap: anywhere; }
-    .status {
-      display: inline-block;
-      padding: 4px 10px;
-      border: 1px solid var(--sage-light);
-      border-radius: 20px;
-      color: var(--sage);
-      background: #f1f5ed;
-      font-size: .9rem;
-    }
-    .editor { margin-top: 20px; border-top: 1px solid #d9cdbd; padding-top: 20px; }
-    #pesan { min-height: 1.6em; margin: 16px 0; }
-    #pesan[data-error="true"] { color: #874526; }
-    [hidden] { display: none !important; }
-
-    @media (min-width: 600px) {
-      main { padding-top: 40px; }
-      .checks { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    }
-  
-/* Shell navigasi v1 (Sesi 12d) — menu + tampilan sama seperti demo v1 */
-.app-layout{display:flex;min-height:100vh}
-.app-layout > main{flex:1;min-width:0;max-width:none;margin:0;padding:26px 30px 60px}
-.sidebar{width:248px;flex:0 0 248px;background:#FBF7EE;border-right:1px solid #E9DFCE;padding:20px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
-.sidebar .brand-row{padding:2px 8px 14px;border-bottom:1px solid #E9DFCE;margin-bottom:14px}
-.brand-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.brand-logo{width:34px;height:42px;border-radius:10px;flex:0 0 34px;overflow:hidden;background:none}
-.brand-logo img{width:100%;height:100%;object-fit:cover;display:block}
-.brand-name{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:#2C2620}
-.brand-sub{font-size:12.5px;color:#7A6F61}
-.side-link{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#7A6F61;background:none;border:none;width:100%;text-align:left;font-size:14px;font-weight:600;text-decoration:none}
-.side-link .ic{font-size:17px;width:22px;text-align:center}
-.side-link:hover{background:rgba(124,154,110,.07);color:#2C2620}
-.side-link.active{background:rgba(124,154,110,.13);color:#5F7A57}
-.side-user{margin-top:auto;background:#FFFDF8;border:1px solid #E9DFCE;border-radius:12px;padding:12px}
-.side-user .nm{font-weight:700;font-size:13.5px;color:#2C2620}
-.side-user .rl{font-size:12px;color:#5F7A57}
-.side-user button{margin-top:9px;width:100%;background:none;border:1px solid #DCCFB6;color:#7A6F61;border-radius:8px;padding:7px;font-size:12.5px;font-weight:600}
-.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;flex-wrap:wrap}
-.title-row{display:flex;align-items:center;gap:10px}
-.topbar h2{font-size:24px;font-weight:800;letter-spacing:-.02em;color:#2C2620}
-.topbar .sub{color:#7A6F61;font-size:13.5px;margin-top:3px}
-.scope-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(124,154,110,.09);border:1px solid rgba(124,154,110,.3);color:#5F7A57;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700}
-.menu-btn{display:none;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;background:#FFFFFF;border:1px solid #DCCFB6;color:#2C2620;font-size:18px}
-@media (max-width:860px){
-  .sidebar{position:fixed;z-index:40;transform:translateX(-100%);transition:transform .25s}
-  .sidebar.open{transform:none}
-  .app-layout > main{padding:20px 16px 50px}
-  .menu-btn{display:inline-flex !important}
-}
-</style>
+    <link rel="stylesheet" href="/app.css">
 </head>
 <body>
   <div class="app-layout">
@@ -143,10 +17,12 @@
       </div>
       <a class="side-link" href="/dashboard.html"><span class="ic">▦</span> Dashboard</a>
       <a class="side-link" href="/generus.html"><span class="ic">👥</span> Daftar Generus</a>
+      <a class="side-link" id="kelasMenu" href="/kelas.html" hidden><span class="ic">☷</span> Kelas</a>
       <a class="side-link" href="/materi.html"><span class="ic">📖</span> Materi</a>
       <a class="side-link active" href="/jadwal.html"><span class="ic">🗓</span> Jadwal Mengaji</a>
       <a class="side-link" href="/izin-kelola.html"><span class="ic">✉️</span> Izin</a>
       <a class="side-link" href="/laporan.html"><span class="ic">💬</span> Laporan WhatsApp</a>
+      <a class="side-link" href="/arsip.html"><span class="ic">🗂</span> Arsip</a>
       <a class="side-link" href="/cetak-qr.html"><span class="ic">▣</span> Cetak QR Code</a>
       <a class="side-link" id="akunLink" href="/akun.html" hidden><span class="ic">⚙</span> Akun</a>
       <div class="side-user">
@@ -196,6 +72,11 @@ suai wilayah Anda.</p>
         <label class="field">
           <span>Tanggal</span>
           <input id="tanggal-baru" type="date" required>
+        </label>
+
+        <label class="field">
+          <span>Ingatkan H- berapa jam sebelum pengajian (opsional)</span>
+          <input id="pengingat-baru" type="number" min="1" max="720" step="1">
         </label>
 
         <div>
@@ -381,6 +262,16 @@ suai wilayah Anda.</p>
       return id;
     }
 
+    function bacaPengingat(input) {
+      if (!input.value.trim()) return null;
+
+      const jam = Number(input.value);
+      if (!Number.isSafeInteger(jam) || jam < 1 || jam > 720) {
+        throw new Error('Pengingat harus 1–720 jam atau kosong.');
+      }
+      return jam;
+    }
+
     async function muatDaftar() {
       daftar.setAttribute('aria-busy', 'true');
       try {
@@ -406,6 +297,17 @@ suai wilayah Anda.</p>
       tanggal.value = tanggalSaja(item.tanggal);
       label.append(buatElemen('span', 'Tanggal'), tanggal);
 
+      const labelPengingat = buatElemen('label', undefined, 'field');
+      const pengingat = document.createElement('input');
+      pengingat.type = 'number';
+      pengingat.min = '1';
+      pengingat.max = '720';
+      pengingat.step = '1';
+      pengingat.value = item.pengingat_jam === null || item.pengingat_jam === undefined
+        ? ''
+        : String(item.pengingat_jam);
+      labelPengingat.append(buatElemen('span', 'Ingatkan H- berapa jam (opsional)'), pengingat);
+
       const fieldset = document.createElement('fieldset');
       const checks = buatElemen('div', undefined, 'checks');
       fieldset.append(buatElemen('legend', 'Jenjang — pilih minimal satu'), checks);
@@ -418,7 +320,7 @@ suai wilayah Anda.</p>
       batal.type = 'button';
 
       buttons.append(simpan, batal);
-      form.append(label, fieldset, buttons);
+      form.append(label, labelPengingat, fieldset, buttons);
       article.append(form);
       actions.hidden = true;
       tanggal.focus();
@@ -441,6 +343,7 @@ suai wilayah Anda.</p>
           await api(`/api/pertemuan/${item.id}`, 'PATCH', {
             tanggal: tanggal.value,
             jenjang,
+            pengingat_jam: bacaPengingat(pengingat),
           });
 
           form.remove();
@@ -574,7 +477,7 @@ suai wilayah Anda.</p>
           return entry ? entry[1] : value;
         }).join(', ');
 
-        article.append(
+        const baris = [
           buatElemen('h3', labelTanggal(item.tanggal)),
           buatElemen('p', `Tingkat ${TINGKAT[item.tingkat] || item.tingkat}`, 'meta'),
           buatElemen('p', namaJenjang, 'meta'),
@@ -582,8 +485,14 @@ suai wilayah Anda.</p>
             'p',
             item.selesai_pada === null ? 'Akan datang' : 'Selesai',
             'status'
-          )
-        );
+          ),
+        ];
+
+        if (item.pengingat_jam !== null && item.pengingat_jam !== undefined) {
+          baris.push(buatElemen('p', `Ingatkan H-${item.pengingat_jam} jam`, 'meta'));
+        }
+
+        article.append(...baris);
 
         if (bolehKelola(item)) {
           const actions = buatElemen('div', undefined, 'actions');
@@ -660,6 +569,7 @@ suai wilayah Anda.</p>
           desa_id: desaId,
           jenjang,
           tanggal: tanggalInput.value,
+          pengingat_jam: bacaPengingat(document.getElementById('pengingat-baru')),
         });
 
         formBuat.reset();
@@ -730,7 +640,8 @@ suai wilayah Anda.</p>
   var sidebar = document.getElementById('sidebar');
   var menuBtn = document.getElementById('menuBtn');
   var akunLink = document.getElementById('akunLink');
-  var roleLabels = { admin: 'Admin \u00b7 akses penuh', daerah: 'Daerah \u00b7 lihat semua', desa: 'Desa', kelompok: 'Kelompok' };
+  var kelasLink = document.getElementById('kelasMenu');
+  var roleLabels = { admin: 'Admin \u00b7 akses penuh', daerah: 'Daerah', desa: 'Desa', kelompok: 'Kelompok' };
   function setMenu(open) {
     if (!sidebar || !menuBtn) return;
     sidebar.classList.toggle('open', !!open);
@@ -759,6 +670,7 @@ suai wilayah Anda.</p>
       var role = document.getElementById('userRole'); if (role) role.textContent = label;
       var badge = document.getElementById('scopeBadge'); if (badge) badge.textContent = label;
       if (u.role === 'admin' && akunLink) akunLink.hidden = false;
+      if (u.role === 'admin' && kelasLink) kelasLink.hidden = false;
     })
     .catch(function () {});
 })();

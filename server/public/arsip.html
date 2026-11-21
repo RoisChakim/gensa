@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arsip · GENSA</title>
+    <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <p id="startupStatus" role="status" aria-live="polite">Memuat arsip…</p>
+  <noscript>
+    <p class="empty">Aktifkan JavaScript untuk membuka arsip GENSA.</p>
+  </noscript>
+
+  <div id="appView">
+    <div class="app-layout">
+      <aside class="sidebar" id="sidebar" aria-label="Menu utama">
+        <button class="menu-btn sidebar-close" id="closeMenuBtn" type="button"
+          aria-label="Tutup menu">×</button>
+        <div class="brand-row">
+          <div class="brand-logo">
+            <img src="/icon-192.png" alt="Logo GENSA" width="34" height="42">
+          </div>
+          <div>
+            <div class="brand-name">GENSA</div>
+            <div class="brand-sub">Platform Manajemen Generus</div>
+          </div>
+        </div>
+
+        <a class="side-link" href="/dashboard.html">
+          <span class="ic" aria-hidden="true">▦</span> Dashboard
+        </a>
+        <a class="side-link" href="/generus.html">
+          <span class="ic" aria-hidden="true">👥</span> Daftar Generus
+        </a>
+        <a class="side-link" id="kelasMenu" href="/kelas.html" hidden>
+          <span class="ic" aria-hidden="true">☷</span> Kelas
+        </a>
+        <a class="side-link" href="/materi.html">
+          <span class="ic" aria-hidden="true">📖</span> Materi
+        </a>
+        <a class="side-link" href="/jadwal.html">
+          <span class="ic" aria-hidden="true">🗓</span> Jadwal Mengaji
+        </a>
+        <a class="side-link" href="/izin-kelola.html">
+          <span class="ic" aria-hidden="true">✉️</span> Izin
+        </a>
+        <a class="side-link" href="/laporan.html">
+          <span class="ic" aria-hidden="true">💬</span> Laporan WhatsApp
+        </a>
+        <a class="side-link active" href="/arsip.html" aria-current="page">
+          <span class="ic" aria-hidden="true">🗂</span> Arsip
+        </a>
+        <a class="side-link" href="/cetak-qr.html">
+          <span class="ic" aria-hidden="true">▣</span> Cetak QR Code
+        </a>
+        <a class="side-link" id="accountMenu" href="/akun.html" hidden>
+          <span class="ic" aria-hidden="true">⚙</span> Akun
+        </a>
+
+        <div class="side-user">
+          <div class="nm" id="userName"></div>
+          <div class="rl" id="userRole"></div>
+          <button id="logoutBtn" type="button">Keluar</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <div class="title-row">
+              <button class="menu-btn" id="menuBtn" type="button"
+                aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+              <h2 id="pageTitle">Arsip</h2>
+            </div>
+            <div class="sub" id="pageSub">Data kegiatan yang sudah lebih dari 1 bulan.
+              Data tidak dihapus — hanya dikelompokkan di sini supaya daftar utama
+              tetap ringan.</div>
+          </div>
+          <span class="scope-badge" id="scopeBadge"></span>
+        </div>
+
+        <div id="errorBox" role="alert" aria-live="assertive" hidden></div>
+
+        <section id="view-arsip" aria-labelledby="pageTitle">
+          <div class="card">
+            <h3>Daftar Bulan</h3>
+            <p class="hint">
+              Arsip tersedia per bulan utuh setelah seluruh tanggal pada bulan
+              tersebut berusia lebih dari satu bulan. Data tetap disimpan tanpa
+              penghapusan otomatis dan hanya ditampilkan dalam lingkupmu.
+            </p>
+            <p class="hint">
+              Absensi dan izin mengikuti tanggal pertemuan yang sudah selesai.
+              Penilaian mengikuti bulan saat pertama kali dicatat.
+            </p>
+            <div id="archiveList" aria-live="polite" aria-busy="true">
+              <p class="empty">Memuat arsip…</p>
+            </div>
+          </div>
+
+          <section class="card" id="archiveDetail"
+            aria-labelledby="detailTitle" hidden>
+            <h3 id="detailTitle" tabindex="-1">Rekap Arsip</h3>
+            <p class="hint" id="detailPeriod"></p>
+            <div id="detailContent" aria-live="polite" aria-busy="false"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    const roleLabels = new Map([
+      ['admin', 'Admin · akses penuh'],
+      ['daerah', 'Daerah'],
+      ['desa', 'Desa'],
+      ['kelompok', 'Kelompok']
+    ]);
+
+    const numberFormatter = new Intl.NumberFormat('id-ID');
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileQuery = window.matchMedia('(max-width: 860px)');
+    let redirecting = false;
+    let detailRequest = 0;
+
+    function textElement(tag, className, text) {
+      const element = document.createElement(tag);
+      element.className = className;
+      element.textContent = text;
+      return element;
+    }
+
+    function showError(message) {
+      if (redirecting) return;
+      const box = document.getElementById('errorBox');
+      box.replaceChildren(textElement('p', '', message));
+      box.hidden = false;
+    }
+
+    function showMessage(container, message) {
+      container.replaceChildren(textElement('p', 'empty', message));
+    }
+
+    function redirectToLogin() {
+      if (redirecting) return;
+      redirecting = true;
+      document.getElementById('appView').style.display = 'none';
+      const status = document.getElementById('startupStatus');
+      status.hidden = false;
+      status.textContent = 'Mengalihkan ke halaman masuk…';
+      window.location.replace('/login.html');
+    }
+
+    async function getJSON(path) {
+      const response = await fetch(path, {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { Accept: 'application/json' }
+      });
+
+      if (response.status === 401) {
+        redirectToLogin();
+        throw new Error('Sesi berakhir.');
+      }
+      if (!response.ok) throw new Error('Permintaan gagal.');
+      return response.json();
+    }
+
+    function apiCount(value) {
+      if (typeof value !== 'number' &&
+          !(typeof value === 'string' && /^\d+$/.test(value))) {
+        throw new Error('Angka tidak valid.');
+      }
+
+      const count = Number(value);
+      if (!Number.isSafeInteger(count) || count < 0) {
+        throw new Error('Angka tidak valid.');
+      }
+      return count;
+    }
+
+    function countText(value) {
+      return numberFormatter.format(apiCount(value));
+    }
+
+    function percentText(value) {
+      if (value === null) return '—';
+      if (typeof value !== 'number' || !Number.isFinite(value) ||
+          value < 0 || value > 100) {
+        throw new Error('Persentase tidak valid.');
+      }
+      return numberFormatter.format(value) + '%';
+    }
+
+    function createTable(label, headers, rows) {
+      const wrapper = document.createElement('div');
+      wrapper.style.overflowX = 'auto';
+      wrapper.style.marginBottom = '18px';
+      wrapper.tabIndex = 0;
+      wrapper.setAttribute('role', 'region');
+      wrapper.setAttribute('aria-label', label);
+
+      const table = document.createElement('table');
+      table.setAttribute('aria-label', label);
+
+      const head = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      for (const heading of headers) {
+        const cell = textElement('th', '', heading);
+        cell.scope = 'col';
+        headerRow.append(cell);
+      }
+      head.append(headerRow);
+
+      const body = document.createElement('tbody');
+      for (const values of rows) {
+        const row = document.createElement('tr');
+        for (const value of values) {
+          row.append(textElement('td', '', value));
+        }
+        body.append(row);
+      }
+
+      table.append(head, body);
+      wrapper.append(table);
+      return wrapper;
+    }
+
+    function renderLaporan(data) {
+      const fragment = document.createDocumentFragment();
+
+      fragment.append(textElement('h3', '', 'Rekap per Kelompok'));
+      if (data.rekap.length === 0) {
+        fragment.append(textElement('p', 'empty', 'Belum ada rekap kelompok.'));
+      } else {
+        fragment.append(createTable(
+          'Rekap per kelompok',
+          ['Kelompok', 'Desa', 'Generus', 'Pertemuan', 'Rata-rata hadir'],
+          data.rekap.map(item => [
+            item.kelompok,
+            item.desa,
+            countText(item.generus),
+            countText(item.pertemuan),
+            percentText(item.rata_persen)
+          ])
+        ));
+      }
+
+      fragment.append(
+        textElement('h3', '', 'Rincian per Generus'),
+        textElement(
+          'p',
+          'hint',
+          'Perhitungan mengikuti laporan kehadiran. Izin mencakup izin dan sakit. ' +
+          'Persentase dihitung dari hadir dibagi jumlah pertemuan wajib; ' +
+          'tanda — berarti tidak ada pertemuan wajib.'
+        )
+      );
+
+      if (data.rincian.length === 0) {
+        fragment.append(textElement('p', 'empty', 'Belum ada rincian generus.'));
+      } else {
+        fragment.append(createTable(
+          'Rincian kehadiran per generus',
+          ['Nama', 'Kelompok', 'Desa', 'Hadir', 'Izin', 'Alfa', '%'],
+          data.rincian.map(item => [
+            item.nama,
+            item.kelompok,
+            item.desa,
+            countText(item.hadir),
+            countText(item.izin),
+            countText(item.alfa),
+            percentText(item.persen)
+          ])
+        ));
+      }
+
+      return fragment;
+    }
+
+    async function loadDetail(bulan, label, selectedButton) {
+      const requestId = ++detailRequest;
+      const card = document.getElementById('archiveDetail');
+      const content = document.getElementById('detailContent');
+      const title = document.getElementById('detailTitle');
+      const period = document.getElementById('detailPeriod');
+      const errorBox = document.getElementById('errorBox');
+
+      errorBox.hidden = true;
+      errorBox.replaceChildren();
+
+      for (const button of document.querySelectorAll('#archiveList button')) {
+        button.setAttribute('aria-expanded', String(button === selectedButton));
+      }
+
+      card.hidden = false;
+      title.textContent = 'Arsip ' + label;
+      period.textContent = '';
+      content.setAttribute('aria-busy', 'true');
+      showMessage(content, 'Memuat rekap arsip…');
+
+      try {
+        const data = await getJSON(
+          '/api/arsip/bulan?bulan=' + encodeURIComponent(bulan)
+        );
+        if (requestId !== detailRequest || redirecting) return;
+
+        if (!data || data.bulan !== bulan || typeof data.label !== 'string' ||
+            !Array.isArray(data.rekap) || !Array.isArray(data.rincian) ||
+            typeof data.periode?.dari !== 'string' ||
+            typeof data.periode?.sampai !== 'string' ||
+            typeof data.wilayah !== 'string') {
+          throw new Error('Data arsip tidak lengkap.');
+        }
+
+        const fragment = renderLaporan(data);
+        title.textContent = 'Arsip ' + data.label;
+        period.textContent = data.periode.dari + ' s.d. ' +
+          data.periode.sampai + ' · ' + data.wilayah;
+        content.replaceChildren(fragment);
+
+        card.scrollIntoView({ block: 'start' });
+        title.focus({ preventScroll: true });
+      } catch {
+        if (requestId !== detailRequest || redirecting) return;
+        showMessage(content, 'Rincian arsip belum tersedia.');
+        showError('Rekap arsip gagal dimuat. Tekan Lihat untuk mencoba lagi.');
+      } finally {
+        if (requestId === detailRequest) {
+          content.setAttribute('aria-busy', 'false');
+        }
+      }
+    }
+
+    async function loadArsip() {
+      const container = document.getElementById('archiveList');
+      container.setAttribute('aria-busy', 'true');
+
+      try {
+        const data = await getJSON('/api/arsip');
+        if (redirecting) return;
+        if (!Array.isArray(data?.arsip)) {
+          throw new Error('Data arsip tidak lengkap.');
+        }
+
+        if (data.arsip.length === 0) {
+          showMessage(container, 'Belum ada arsip.');
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        for (const item of data.arsip) {
+          if (!item || typeof item.bulan !== 'string' ||
+              !/^\d{4}-(0[1-9]|1[0-2])$/.test(item.bulan) ||
+              typeof item.label !== 'string') {
+            throw new Error('Data bulan tidak valid.');
+          }
+
+          const row = document.createElement('div');
+          row.className = 'jadwal-item';
+          row.style.cursor = 'pointer';
+
+          const content = document.createElement('div');
+          const counts = [
+            ['pertemuan', item.pertemuan],
+            ['absensi', item.absensi],
+            ['penilaian', item.penilaian],
+            ['izin', item.izin]
+          ].map(([name, value]) => countText(value) + ' ' + name);
+
+          content.append(
+            textElement('div', 't', item.label),
+            textElement('div', 'm', counts.join(' · '))
+          );
+
+          const button = textElement('button', 'btn btn-sm', 'Lihat');
+          button.type = 'button';
+          button.setAttribute('aria-label', 'Lihat arsip ' + item.label);
+          button.setAttribute('aria-controls', 'archiveDetail');
+          button.setAttribute('aria-expanded', 'false');
+
+          row.addEventListener('click', () => {
+            void loadDetail(item.bulan, item.label, button);
+          });
+
+          row.append(content, button);
+          fragment.append(row);
+        }
+
+        container.replaceChildren(fragment);
+      } catch {
+        if (redirecting) return;
+        showMessage(container, 'Daftar arsip belum tersedia.');
+        showError('Daftar arsip gagal dimuat. Silakan muat ulang halaman.');
+      } finally {
+        container.setAttribute('aria-busy', 'false');
+      }
+    }
+
+    function setMenuOpen(open, restoreFocus = false) {
+      const isOpen = mobileQuery.matches && open;
+      sidebar.classList.toggle('open', isOpen);
+      sidebar.inert = mobileQuery.matches && !isOpen;
+      menuBtn.setAttribute('aria-expanded', String(isOpen));
+      menuBtn.setAttribute('aria-label', isOpen ? 'Tutup menu' : 'Buka menu');
+
+      if (isOpen) {
+        document.getElementById('closeMenuBtn').focus();
+      } else if (restoreFocus && mobileQuery.matches) {
+        menuBtn.focus();
+      }
+    }
+
+    menuBtn.addEventListener('click', () => {
+      setMenuOpen(!sidebar.classList.contains('open'));
+    });
+
+    document.getElementById('closeMenuBtn').addEventListener('click', () => {
+      setMenuOpen(false, true);
+    });
+
+    document.addEventListener('click', event => {
+      if (mobileQuery.matches && sidebar.classList.contains('open') &&
+          !sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && sidebar.classList.contains('open')) {
+        setMenuOpen(false, true);
+      }
+    });
+
+    document.addEventListener('focusin', event => {
+      if (mobileQuery.matches && sidebar.classList.contains('open') &&
+          !sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    });
+
+    mobileQuery.addEventListener('change', () => {
+      setMenuOpen(false, sidebar.contains(document.activeElement));
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      const button = document.getElementById('logoutBtn');
+      button.disabled = true;
+      button.textContent = 'Keluar…';
+
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: { Accept: 'application/json' }
+        });
+
+        if (!response.ok && response.status !== 401) {
+          throw new Error('Gagal keluar.');
+        }
+        redirectToLogin();
+      } catch {
+        showError('Belum berhasil keluar. Periksa koneksi lalu coba lagi.');
+        button.disabled = false;
+        button.textContent = 'Keluar';
+      }
+    });
+
+    async function init() {
+      let user;
+
+      try {
+        const data = await getJSON('/api/me');
+        user = data.user;
+
+        if (!user || !roleLabels.has(user.role) || typeof user.email !== 'string') {
+          throw new Error('Data pengguna tidak valid.');
+        }
+
+        if (user.must_change_password) {
+          redirectToLogin();
+          return;
+        }
+      } catch {
+        if (!redirecting) {
+          document.getElementById('startupStatus').textContent =
+            'Arsip belum dapat dimuat. Periksa koneksi lalu muat ulang halaman.';
+        }
+        return;
+      }
+
+      const roleLabel = roleLabels.get(user.role);
+      document.getElementById('userName').textContent = user.email;
+      document.getElementById('userRole').textContent = roleLabel;
+      document.getElementById('scopeBadge').textContent = roleLabel;
+
+      const accountMenu = document.getElementById('accountMenu');
+      const kelasMenu = document.getElementById('kelasMenu');
+      if (user.role === 'admin') {
+        accountMenu.hidden = false;
+        kelasMenu.hidden = false;
+      } else {
+        accountMenu.remove();
+        kelasMenu.remove();
+      }
+
+      document.getElementById('startupStatus').hidden = true;
+      document.getElementById('appView').style.display = 'block';
+      setMenuOpen(false);
+
+      await loadArsip();
+    }
+
+    void init();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
