@@ -661,6 +661,25 @@ dibuat Admin dan pendaftaran khusus per peran.
 
 ## Langkah berikut
 
+- **DEPLOY VERCEL (uji coba) — kode SIAP, butuh 2 hal dari pemilik
+  (2026-11-21 ~07:30 WIB, disiapkan Muse tanpa Codex):** adaptasi
+  serverless sudah dibuat + dites (lihat `docs/DEPLOY-VERCEL.md`).
+  Yang berubah di repo: `server/api/index.js` (baru, entri serverless),
+  `server/vercel.json` (baru, rewrite `/api/*` + `/` → `/api/index`),
+  `server/index.js` (listen hanya bila dijalankan langsung + ekspor
+  handler; `TRUST_PROXY` + `APP_URL` baru — tanpa ini POST dari browser
+  di Vercel ditolak 403 karena TLS berakhir di edge), `.env.example`
+  (dua var baru). Verifikasi: S1 11/11, S3 11/11, S4 8/8, S5 7/7,
+  S6 7/7, S7 6/6, S8 8/8, S9 10/10, S10 16/16 lulus; simulasi
+  serverless (require handler, TRUST_PROXY=1): GET / → 302,
+  POST /api/login → 401 (bukan 403). Yang MASIH BUTUH PEMILIK:
+  (1) akun Neon gratis (tanpa kartu) + connection string pooled;
+  (2) akses Vercel — konektor Vercel di Muse belum terhubung
+  (`auth_status: not_connected`), atau buat project lewat dashboard
+  (Root Directory `server`, env: DATABASE_URL, SESSION_SECRET baru,
+  TRUST_PROXY=1, APP_URL). Setelah itu: migrasi + seed ke Neon,
+  lalu verifikasi login. Login Google dilewati dulu untuk uji coba.
+  File ini BELUM di-push ke GitHub (push terakhir commit `827f74fb`).
 - Sesi 11 review Codex SELESAI (2026-11-21 ~09:45 WIB) — daftar
   ada di STATE.md bagian "Status sekarang". LANGKAH BERIKUT
   (butuh keputusan pemilik dulu, JANGAN langsung perbaiki):

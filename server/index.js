@@ -51,6 +51,14 @@ const GOOGLE_REDIRECT_URI =
 const SESSION_SECONDS = 12 * 60 * 60;
 const RESET_SECONDS = 60 * 60;
 const MAX_BODY = 100 * 1024;
+// TRUST_PROXY=1 hanya bila server jalan di belakang reverse proxy
+// tepercaya (mis. Vercel): TLS berakhir di edge, jadi req.socket.encrypted
+// selalu false dan protokol asli dibaca dari x-forwarded-proto.
+// JANGAN diaktifkan bila server diakses langsung (lokal).
+const TRUST_PROXY = process.env.TRUST_PROXY === '1';
+// Basis URL publik untuk tautan reset password (mis.
+// https://gensa.vercel.app). Bila kosong, pakai alamat lokal seperti dulu.
+const APP_URL = (process.env.APP_URL || '').replace(/\/+$/, '');
 const PUBLIC_DIR = path.resolve(__dirname, 'public');
 const MANUAL_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
@@ -248,6 +256,25 @@ function cookieToken(req) {
   return matches[0];
 }
 
+// Protokol yang dilihat klien. Di belakang proxy tepercaya, baca
+// x-forwarded-proto; bila tidak, pakai status TLS koneksi langsung.
+function requestProtocol(req) {
+  if (TRUST_PROXY) {
+    const forwarded = (req.headers['x-forwarded-proto'] || '')
+      .split(',')[0]
+      .trim()
+      .toLowerCase();
+    if (forwarded === 'https' || forwarded === 'http') {
+      return `${forwarded}:`;
+    }
+  }
+  return req.socket.encrypted ? 'https:' : 'http:';
+}
+
+function requestSecure(req) {
+  return requestProtocol(req) === 'https:';
+}
+
 function checkOrigin(req) {
   const origin = req.headers.origin;
   if (!origin) return;
@@ -259,7 +286,7 @@ function checkOrigin(req) {
     fail(403, 'Asal permintaan tidak diizinkan.');
   }
 
-  const protocol = req.socket.encrypted ? 'https:' : 'http:';
+  const protocol = requestProtocol(req);
   if (
     parsed.protocol !== protocol ||
     parsed.host !== req.headers.host ||
@@ -372,7 +399,7 @@ async function login(req, res) {
         must_change_password: user.must_change_password,
       },
     },
-    { 'Set-Cookie': sessionCookie(token, Boolean(req.socket.encrypted)) }
+    { 'Set-Cookie': sessionCookie(token, requestSecure(req)) }
   );
 }
 
@@ -385,7 +412,7 @@ async function logout(req, res, auth) {
     res,
     200,
     { ok: true },
-    { 'Set-Cookie': sessionCookie('', Boolean(req.socket.encrypted), 0) }
+    { 'Set-Cookie': sessionCookie('', requestSecure(req), 0) }
   );
 }
 
@@ -566,9 +593,11 @@ async function requestReset(req, res) {
     })).toString('base64url');
     const token = `${payload}.${resetSignature(payload).toString('base64url')}`;
 
-    const protocol = req.socket.encrypted ? 'https' : 'http';
-    // Host tetap, sehingga header Host tidak dapat mengubah tujuan tautan.
-    const link = `${protocol}://127.0.0.1:${PORT}/reset-password.html?token=${encodeURIComponent(token)}`;
+    const protocol = requestProtocol(req).slice(0, -1);
+    // Basis tautan tetap dari konfigurasi (APP_URL) atau alamat lokal,
+    // sehingga header Host tidak dapat mengubah tujuan tautan.
+    const base = APP_URL || `${protocol}://127.0.0.1:${PORT}`;
+    const link = `${base}/reset-password.html?token=${encodeURIComponent(token)}`;
     console.log(`Tautan reset untuk ${user.email}: ${link}`);
   }
 
@@ -3303,7 +3332,7 @@ async function callbackLoginGoogle(req, res, url) {
       Location: '/jadwal.html',
       'Set-Cookie': sessionCookie(
         token,
-        Boolean(req.socket.encrypted)
+        requestSecure(req)
       ),
       'Cache-Control': 'no-store',
     });
@@ -3602,6 +3631,15 @@ const server = http.createServer((req, res) => {
   handle(req, res).catch((error) => sendError(res, error));
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`Server GENSA berjalan di http://127.0.0.1:${PORT}`);
-});
+// Jalan sebagai proses HTTP hanya bila berkas ini dijalankan langsung
+// (node server/index.js). Bila di-require (mis. dari serverless function
+// Vercel), jangan listen — pemanggil yang meneruskan (req, res).
+if (require.main === module) {
+  server.listen(PORT, '127.0.0.1', () => {
+    console.log(`Server GENSA berjalan di http://127.0.0.1:${PORT}`);
+  });
+}
+
+module.exports = (req, res) => {
+  handle(req, res).catch((error) => sendError(res, error));
+};
