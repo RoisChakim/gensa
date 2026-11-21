@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F6F1E9">
+  <title>Akun — GENSA</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    :root{
+      --bg:#F6F1E9; --bg2:#EFE8DA; --card:#FFFDF8; --card2:#FBF7EF;
+      --input:#FFFFFF; --line:#E9DFCE; --line2:#DCCFB6;
+      --lime:#5F7A57; --lime-dim:#7C9A6E;
+      --btn:#8A5A33;
+      --text:#2C2620; --muted:#7A6F61; --muted2:#A79C8B;
+      --danger:#C25E4B; --amber:#8A6D1F; --blue:#5E8A94;
+      --radius:20px; --radius-sm:10px;
+      --font:'Plus Jakarta Sans',Inter,system-ui,-apple-system,'Segoe UI',sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+    button{font-family:var(--font);cursor:pointer}
+    input,select,textarea{font-family:var(--font)}
+    a{color:var(--lime)}
+    ::placeholder{color:var(--muted2)}
+    #appView{display:none;min-height:100vh}
+    .app-layout{display:flex;min-height:100vh}
+    .sidebar{width:248px;flex:0 0 248px;background:#FBF7EE;border-right:1px solid var(--line);padding:20px 14px;
+      display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+    .sidebar .brand-row{padding:2px 8px 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
+    .brand-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+    .brand-logo{width:34px;height:42px;border-radius:10px;flex:0 0 34px;overflow:hidden;background:none}
+    .brand-logo img{width:100%;height:100%;object-fit:cover;display:block}
+    .brand-name{font-size:18px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+    .brand-sub{font-size:12.5px;color:var(--muted)}
+    .side-link{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:var(--muted);
+      background:none;border:none;width:100%;text-align:left;font-size:14px;font-weight:600;text-decoration:none}
+    .side-link .ic{font-size:17px;width:22px;text-align:center}
+    .side-link:hover{background:rgba(124,154,110,.07);color:var(--text)}
+    .side-link.active{background:rgba(124,154,110,.13);color:var(--lime)}
+    .side-label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted2);padding:14px 12px 6px}
+    .side-user{margin-top:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+    .side-user .nm{font-weight:700;font-size:13.5px}
+    .side-user .rl{font-size:12px;color:var(--lime)}
+    .side-user button{margin-top:9px;width:100%;background:none;border:1px solid var(--line2);color:var(--muted);
+      border-radius:8px;padding:7px;font-size:12.5px;font-weight:600}
+    .main{flex:1;min-width:0;padding:26px 30px 60px}
+    .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;flex-wrap:wrap}
+    .topbar h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
+    .topbar .sub{color:var(--muted);font-size:13.5px;margin-top:3px}
+    .scope-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(124,154,110,.09);border:1px solid rgba(124,154,110,.3);
+      color:var(--lime);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:16px 0 22px}
+    .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+    .stat .lb{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+    .stat .vl{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+    .stat .dt{font-size:12.5px;color:var(--muted);margin-top:2px}
+    .stat .dt b{color:var(--lime)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+    .card h3{font-size:16.5px;font-weight:800;margin-bottom:4px}
+    .card .hint{font-size:13px;color:var(--muted);margin-bottom:14px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+    .toolbar input,.toolbar select{background:var(--input);border:1px solid var(--line2);color:var(--text);
+      border-radius:9px;padding:9px 11px;font-size:13.5px;outline:none;min-width:0}
+    .toolbar input:focus,.toolbar select:focus{border-color:var(--lime)}
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+    .field input,.field select,.field textarea{width:100%;background:var(--input);border:1px solid var(--line2);color:var(--text);
+      border-radius:var(--radius-sm);padding:12px 13px;font-size:14.5px;outline:none}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(124,154,110,.15)}
+    .btn{border:1px solid var(--line2);background:var(--input);color:var(--text);border-radius:9px;
+      padding:9px 14px;font-size:13.5px;font-weight:700}
+    .btn:hover{border-color:var(--lime)}
+    .btn-lime{background:var(--btn);border:none;color:#FFFFFF}
+    .btn-ghost{background:none}
+    .btn-danger{background:rgba(194,94,75,.09);border-color:rgba(194,94,75,.35);color:#A34A38}
+    .btn-sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    table{width:100%;border-collapse:collapse;font-size:13.5px}
+    th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+      padding:9px 10px;border-bottom:1px solid var(--line)}
+    td{padding:10px;border-bottom:1px solid rgba(120,100,70,.22);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    .tag{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 10px}
+    .tag-caberawit{background:rgba(94,138,148,.14);color:#4A6E75}
+    .tag-pra{background:rgba(185,138,47,.14);color:#8A6D1F}
+    .tag-remaja{background:rgba(124,154,110,.16);color:#4F6B47}
+    .tag-nikah{background:rgba(194,94,75,.13);color:#A34A38}
+    .tag-hadir{background:rgba(124,154,110,.16);color:#4F6B47}
+    .tag-absen{background:rgba(194,94,75,.13);color:#A34A38}
+    .tag-info{background:rgba(94,138,148,.14);color:#4A6E75}
+    .locked-note{font-size:12.5px;color:var(--amber);margin-top:8px}
+    .jadwal-item{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;
+      background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;flex-wrap:wrap}
+    .jadwal-item .t{font-weight:700;font-size:14.5px}
+    .jadwal-item .m{font-size:12.5px;color:var(--muted);margin-top:3px}
+    .wa-box{background:#F7F1E3;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+    .wa-box pre{white-space:pre-wrap;font-family:var(--font);font-size:13.5px;line-height:1.6;color:#4A5D3A;margin:8px 0}
+    .wa-box .row{display:flex;gap:8px;flex-wrap:wrap}
+    .qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+    .qr-card{background:#fff;color:#111;border-radius:12px;padding:14px 10px;text-align:center}
+    .qr-card .qr-holder{display:flex;justify-content:center}
+    .qr-card .nm{font-weight:800;font-size:13px;margin-top:8px}
+    .qr-card .mt{font-size:11px;color:#555}
+    .modal-back{position:fixed;inset:0;background:rgba(44,38,32,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+    .modal-back.open{display:flex}
+    .modal{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:22px;width:100%;max-width:480px;max-height:90vh;overflow:auto}
+    .modal h3{font-size:17px;font-weight:800;margin-bottom:14px}
+    .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-grid .full{grid-column:1/-1}
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2C2620;border:1px solid #8A5A33;color:#FFF8EE;border-radius:10px;padding:11px 18px;font-size:13.5px;font-weight:600;z-index:99;display:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+    .empty{color:var(--muted);font-size:13.5px;padding:18px 4px;text-align:center}
+    @media (max-width:860px){
+      .sidebar{position:fixed;z-index:40;transform:translateX(-100%);transition:transform .25s}
+      .sidebar.open{transform:none}
+      .main{padding:20px 16px 50px}
+      .menu-btn{display:inline-flex !important}
+      .form-grid{grid-template-columns:1fr}
+    }
+    .menu-btn{display:none;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;
+      background:var(--input);border:1px solid var(--line2);color:var(--text);font-size:18px}
+
+    [hidden]{display:none !important}
+    .sidebar{overflow-y:auto}
+    .brand-row,.side-user{flex-shrink:0}
+    .side-user .nm{overflow-wrap:anywhere}
+    .topbar{margin-bottom:20px}
+    .menu-btn{margin-bottom:8px}
+    .boot-message{max-width:560px;margin:40px auto;padding:20px}
+    .message{font-size:13.5px;margin-bottom:14px;overflow-wrap:anywhere}
+    .error-message{color:#A34A38;background:rgba(194,94,75,.07);border:1px solid rgba(194,94,75,.3);border-radius:9px;padding:10px 12px}
+    fieldset{border:0;min-width:0}
+    .form-grid>*{min-width:0}
+    .form-note{font-size:13px;color:var(--muted);margin-top:14px}
+    .table-wrap{overflow-x:auto}
+    .account-table{min-width:680px}
+    .account-table td{overflow-wrap:anywhere}
+    .status-tags{display:flex;gap:6px;flex-wrap:wrap}
+    .result-card{background:rgba(124,154,110,.1);border-color:rgba(124,154,110,.3)}
+    .result-details{display:grid;gap:8px;margin:14px 0}
+    .result-details dt{font-size:12px;font-weight:700;color:var(--muted)}
+    .result-details dd{overflow-wrap:anywhere}
+    .password-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .password-row input{flex:1;min-width:0}
+    #initialPassword{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:24px;font-weight:700;letter-spacing:.04em}
+    .password-warning{font-weight:700;color:var(--lime);margin-top:12px}
+    .copy-notice{font-size:13px;color:var(--lime);margin-top:8px}
+    :focus-visible{outline:3px solid var(--lime-dim);outline-offset:3px}
+    @media (prefers-reduced-motion:reduce){.sidebar{transition:none}}
+  </style>
+</head>
+<body>
+  <div class="boot-message" id="bootMessage" role="status">Memuat akun…</div>
+  <noscript>
+    <p class="boot-message">Aktifkan JavaScript untuk membuka halaman Akun.</p>
+  </noscript>
+
+  <div id="appView">
+    <div class="app-layout">
+      <aside class="sidebar" id="sidebar" aria-label="Menu utama">
+        <div class="brand-row">
+          <div class="brand-logo">
+            <img src="/icon-192.png" alt="Logo GENSA">
+          </div>
+          <div>
+            <div class="brand-name" style="font-size:16px">GENSA</div>
+            <div class="brand-sub">Platform Manajemen Generus</div>
+          </div>
+        </div>
+
+        <a class="side-link" href="/dashboard.html"><span class="ic" aria-hidden="true">▦</span> Dashboard</a>
+        <a class="side-link" href="/generus.html"><span class="ic" aria-hidden="true">👥</span> Daftar Generus</a>
+        <a class="side-link" href="/materi.html"><span class="ic" aria-hidden="true">📖</span> Materi</a>
+        <a class="side-link" href="/jadwal.html"><span class="ic" aria-hidden="true">🗓</span> Jadwal Mengaji</a>
+        <a class="side-link" href="/izin-kelola.html"><span class="ic" aria-hidden="true">✉️</span> Izin</a>
+        <a class="side-link" href="/laporan.html"><span class="ic" aria-hidden="true">💬</span> Laporan WhatsApp</a>
+        <a class="side-link" href="/cetak-qr.html"><span class="ic" aria-hidden="true">▣</span> Cetak QR Code</a>
+        <a class="side-link active" id="accountLink" href="/akun.html" aria-current="page" hidden><span class="ic" aria-hidden="true">⚙</span> Akun</a>
+
+        <div class="side-user">
+          <div class="nm" id="userName"></div>
+          <div class="rl" id="userRole"></div>
+          <button id="logoutBtn" type="button">Keluar</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <button class="menu-btn" id="menuBtn" type="button" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+            <h2 id="pageTitle">Akun</h2>
+            <div class="sub" id="pageSub">Kelola akun dan lingkup akses pengguna GENSA.</div>
+          </div>
+          <span class="scope-badge" id="scopeBadge"></span>
+        </div>
+
+        <p class="message error-message" id="pageError" role="alert" hidden></p>
+
+        <section class="card" id="accessDenied" hidden>
+          <p>Halaman ini hanya untuk Admin.</p>
+        </section>
+
+        <section id="accountContent" hidden>
+          <div class="card">
+            <h3>Buat Akun Baru</h3>
+            <p class="hint">Isi email, pilih peran, dan tentukan wilayah sesuai akses pengguna.</p>
+            <p class="message error-message" id="formError" role="alert" hidden></p>
+
+            <form id="accountForm" aria-describedby="passwordHint">
+              <fieldset id="accountFields" disabled>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+                  </div>
+
+                  <div class="field">
+                    <label for="role">Peran</label>
+                    <select id="role" name="role" required>
+                      <option value="">Pilih peran</option>
+                      <option value="admin">Admin</option>
+                      <option value="daerah">Daerah</option>
+                      <option value="desa">Desa</option>
+                      <option value="kelompok">Kelompok</option>
+                    </select>
+                  </div>
+
+                  <div class="field full" id="desaField" hidden>
+                    <label for="desa">Desa</label>
+                    <select id="desa" name="desa_id" disabled>
+                      <option value="">Pilih desa</option>
+                    </select>
+                  </div>
+
+                  <div class="field full" id="kelompokField" hidden>
+                    <label for="kelompok">Kelompok</label>
+                    <select id="kelompok" name="kelompok_id" disabled>
+                      <option value="">Pilih kelompok</option>
+                    </select>
+                  </div>
+
+                  <div class="full">
+                    <button class="btn btn-lime" id="createBtn" type="submit">Buat Akun</button>
+                  </div>
+                </div>
+              </fieldset>
+            </form>
+
+            <p class="form-note" id="passwordHint">Password awal dibuat otomatis oleh server dan hanya ditampilkan sekali di bawah ini. Berikan ke pemilik akun — ia wajib menggantinya saat login pertama.</p>
+          </div>
+
+          <div class="card result-card" id="resultCard" aria-labelledby="resultTitle" hidden>
+            <h3 id="resultTitle" tabindex="-1">Akun Berhasil Dibuat</h3>
+            <dl class="result-details">
+              <div><dt>Email</dt><dd id="resultEmail"></dd></div>
+              <div><dt>Peran</dt><dd id="resultRole"></dd></div>
+              <div><dt>Wilayah</dt><dd id="resultWilayah"></dd></div>
+            </dl>
+            <div class="field">
+              <label for="initialPassword">Password awal</label>
+              <div class="password-row">
+                <input id="initialPassword" type="text" readonly autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="passwordWarning">
+                <button class="btn" id="copyBtn" type="button">Salin</button>
+              </div>
+            </div>
+            <p class="password-warning" id="passwordWarning">Simpan password ini — password awal tidak bisa dilihat lagi.</p>
+            <p class="copy-notice" id="copyNotice" role="status"></p>
+          </div>
+
+          <div class="card">
+            <h3>Daftar Akun</h3>
+            <p class="hint">Daftar akun pengguna, dimulai dari yang terbaru.</p>
+            <p class="message error-message" id="listError" role="alert" hidden></p>
+            <p class="empty" id="listStatus" role="status">Memuat daftar akun…</p>
+            <div class="table-wrap" id="tableWrap" role="region" aria-label="Daftar akun pengguna" tabindex="0" hidden>
+              <table class="account-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Email</th>
+                    <th scope="col">Peran</th>
+                    <th scope="col">Wilayah</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Dibuat</th>
+                  </tr>
+                </thead>
+                <tbody id="accountRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    const byId = (id) => document.getElementById(id);
+    const roleNames = new Map([
+      ['admin', 'Admin'],
+      ['daerah', 'Daerah'],
+      ['desa', 'Desa'],
+      ['kelompok', 'Kelompok']
+    ]);
+    const desaById = new Map();
+    const kelompokById = new Map();
+    const dateFormatter = new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+
+    let isAdmin = false;
+    let wilayahReady = false;
+    let submitting = false;
+    let redirecting = false;
+
+    function showMessage(id, message) {
+      const element = byId(id);
+      element.textContent = message;
+      element.hidden = !message;
+    }
+
+    function goToLogin() {
+      redirecting = true;
+      isAdmin = false;
+      byId('initialPassword').value = '';
+      byId('accountContent').hidden = true;
+      byId('appView').style.display = 'none';
+      byId('bootMessage').hidden = false;
+      byId('bootMessage').textContent = 'Mengalihkan ke halaman masuk…';
+      window.location.replace('/login.html');
+    }
+
+    async function api(path, options = {}) {
+      let response;
+      try {
+        response = await fetch(path, {
+          ...options,
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: {
+            Accept: 'application/json',
+            ...(options.headers || {})
+          }
+        });
+      } catch {
+        throw new Error(
+          options.method === 'POST' && path === '/api/users'
+            ? 'Koneksi terputus. Akun mungkin sudah dibuat. Periksa daftar akun sebelum mencoba lagi.'
+            : 'Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi.'
+        );
+      }
+
+      if (response.status === 401) {
+        goToLogin();
+        throw new Error('Sesi telah berakhir. Silakan masuk kembali.');
+      }
+
+      let data = null;
+      try {
+        data = await response.json();
+      } catch {
+        // Respons tanpa isi, seperti logout, tidak membutuhkan data JSON.
+      }
+
+      if (!response.ok) {
+        let message = 'Permintaan belum berhasil. Silakan coba lagi.';
+        if (response.status === 409 && path === '/api/users') {
+          message = 'Email sudah digunakan. Gunakan email lain.';
+        } else if (response.status === 403) {
+          message = 'Anda tidak memiliki izin untuk melakukan tindakan ini.';
+        } else if (response.status >= 500) {
+          message = 'Server sedang mengalami kendala. Silakan coba lagi nanti.';
+        } else if (data && typeof data.error === 'string') {
+          message = data.error;
+        } else if (data && typeof data.message === 'string') {
+          message = data.message;
+        }
+        throw new Error(message);
+      }
+
+      return data;
+    }
+
+    function syncRoleFields() {
+      const role = byId('role').value;
+      const needsDesa = role === 'desa';
+      const needsKelompok = role === 'kelompok';
+
+      byId('desaField').hidden = !needsDesa;
+      byId('desa').disabled = !needsDesa;
+      byId('desa').required = needsDesa;
+      byId('kelompokField').hidden = !needsKelompok;
+      byId('kelompok').disabled = !needsKelompok;
+      byId('kelompok').required = needsKelompok;
+
+      if (!needsDesa) byId('desa').value = '';
+      if (!needsKelompok) byId('kelompok').value = '';
+    }
+
+    function addOption(select, value, label) {
+      const option = document.createElement('option');
+      option.value = String(value);
+      option.textContent = label;
+      select.append(option);
+    }
+
+    async function loadWilayah() {
+      if (!isAdmin) return;
+
+      const data = await api('/api/wilayah');
+      if (!data || !Array.isArray(data.desa) || !Array.isArray(data.kelompok)) {
+        throw new Error('Data wilayah belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.');
+      }
+
+      for (const desa of data.desa) {
+        desaById.set(String(desa.id), desa);
+        addOption(byId('desa'), desa.id, desa.nama);
+      }
+
+      for (const kelompok of data.kelompok) {
+        kelompokById.set(String(kelompok.id), kelompok);
+        const desa = desaById.get(String(kelompok.desa_id));
+        const desaLabel = desa ? 'Desa ' + desa.nama : 'Desa tidak tersedia';
+        addOption(byId('kelompok'), kelompok.id, kelompok.nama + ' — ' + desaLabel);
+      }
+
+      wilayahReady = true;
+      byId('accountFields').disabled = false;
+      syncRoleFields();
+    }
+
+    function wilayahLabel(user) {
+      if (user.role === 'desa') {
+        const desa = desaById.get(String(user.desa_id));
+        return user.desa_nama || (desa && desa.nama) || '—';
+      }
+
+      if (user.role === 'kelompok') {
+        const kelompok = kelompokById.get(String(user.kelompok_id));
+        const namaKelompok = user.kelompok_nama || (kelompok && kelompok.nama);
+        const desa = kelompok && desaById.get(String(kelompok.desa_id));
+        const namaDesa = user.desa_nama || (desa && desa.nama);
+
+        if (!namaKelompok) return '—';
+        return namaDesa ? namaKelompok + ' — Desa ' + namaDesa : namaKelompok;
+      }
+
+      return '—';
+    }
+
+    function appendCell(row, value) {
+      const cell = document.createElement('td');
+      cell.textContent = value == null ? '—' : String(value);
+      row.append(cell);
+      return cell;
+    }
+
+    function makeTag(label, className) {
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + className;
+      tag.textContent = label;
+      return tag;
+    }
+
+    function formatDate(value) {
+      if (!value) return '—';
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? '—' : dateFormatter.format(date);
+    }
+
+    async function loadUsers() {
+      if (!isAdmin) return;
+
+      showMessage('listError', '');
+      byId('tableWrap').hidden = true;
+      byId('accountRows').replaceChildren();
+      byId('listStatus').textContent = 'Memuat daftar akun…';
+      byId('listStatus').hidden = false;
+
+      try {
+        const data = await api('/api/users');
+        if (!data || !Array.isArray(data.users)) {
+          throw new Error('Daftar akun belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.');
+        }
+        if (redirecting || !isAdmin) return;
+
+        if (data.users.length === 0) {
+          byId('listStatus').textContent = 'Belum ada akun.';
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        for (const user of data.users) {
+          const row = document.createElement('tr');
+          appendCell(row, user.email);
+          appendCell(row, roleNames.get(user.role) || '—');
+          appendCell(row, wilayahLabel(user));
+
+          const statusCell = document.createElement('td');
+          const tags = document.createElement('div');
+          tags.className = 'status-tags';
+          tags.append(
+            user.active === false
+              ? makeTag('Nonaktif', 'tag-absen')
+              : makeTag('Aktif', 'tag-hadir')
+          );
+          if (user.must_change_password === true) {
+            tags.append(makeTag('Belum ganti password', 'tag-info'));
+          }
+          statusCell.append(tags);
+          row.append(statusCell);
+          appendCell(row, formatDate(user.created_at));
+          fragment.append(row);
+        }
+
+        byId('accountRows').replaceChildren(fragment);
+        byId('listStatus').hidden = true;
+        byId('tableWrap').hidden = false;
+      } catch (error) {
+        if (!redirecting) {
+          byId('listStatus').hidden = true;
+          showMessage('listError', error.message);
+        }
+      }
+    }
+
+    byId('role').addEventListener('change', syncRoleFields);
+
+    byId('accountForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!isAdmin || !wilayahReady || submitting || redirecting) return;
+
+      showMessage('formError', '');
+      const email = byId('email').value.trim();
+      byId('email').value = email;
+      if (!byId('accountForm').reportValidity()) return;
+
+      const role = byId('role').value;
+      const desaId = byId('desa').value;
+      const kelompokId = byId('kelompok').value;
+
+      if (!roleNames.has(role)) {
+        showMessage('formError', 'Pilih peran yang sesuai.');
+        return;
+      }
+      if (role === 'desa' && !desaById.has(desaId)) {
+        showMessage('formError', 'Pilih desa yang tersedia.');
+        return;
+      }
+      if (role === 'kelompok' && !kelompokById.has(kelompokId)) {
+        showMessage('formError', 'Pilih kelompok yang tersedia.');
+        return;
+      }
+
+      const payload = {
+        email,
+        role,
+        desa_id: role === 'desa' ? desaId : null,
+        kelompok_id: role === 'kelompok' ? kelompokId : null
+      };
+
+      submitting = true;
+      byId('accountFields').disabled = true;
+      byId('createBtn').textContent = 'Membuat akun…';
+      byId('accountForm').setAttribute('aria-busy', 'true');
+
+      try {
+        const data = await api('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (redirecting || !isAdmin) return;
+
+        if (!data || !data.user || typeof data.initial_password !== 'string' || !data.initial_password) {
+          showMessage(
+            'formError',
+            'Server menerima permintaan, tetapi hasil akun atau password awal tidak lengkap. Periksa daftar akun sebelum mencoba lagi.'
+          );
+          await loadUsers();
+          return;
+        }
+
+        byId('resultEmail').textContent = data.user.email || payload.email;
+        byId('resultRole').textContent = roleNames.get(data.user.role || payload.role) || '—';
+        byId('resultWilayah').textContent = wilayahLabel({
+          ...payload,
+          ...data.user
+        });
+        byId('initialPassword').value = data.initial_password;
+        byId('copyNotice').textContent = '';
+        byId('resultCard').hidden = false;
+        byId('resultTitle').focus();
+
+        byId('accountForm').reset();
+        syncRoleFields();
+        await loadUsers();
+      } catch (error) {
+        if (!redirecting) showMessage('formError', error.message);
+      } finally {
+        submitting = false;
+        byId('accountFields').disabled = !isAdmin || !wilayahReady || redirecting;
+        byId('createBtn').textContent = 'Buat Akun';
+        byId('accountForm').removeAttribute('aria-busy');
+      }
+    });
+
+    byId('copyBtn').addEventListener('click', async () => {
+      const input = byId('initialPassword');
+      if (!isAdmin || redirecting || !input.value) return;
+
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.writeText) {
+          throw new Error('Clipboard tidak tersedia.');
+        }
+        await navigator.clipboard.writeText(input.value);
+        byId('copyNotice').textContent = 'Password berhasil disalin.';
+      } catch {
+        input.focus();
+        input.select();
+        input.setSelectionRange(0, input.value.length);
+        byId('copyNotice').textContent = 'Teks password sudah dipilih. Tekan Ctrl+C, Command+C, atau pilih Salin pada perangkat Anda.';
+      }
+    });
+
+    function closeMenu() {
+      byId('sidebar').classList.remove('open');
+      byId('menuBtn').setAttribute('aria-expanded', 'false');
+      byId('menuBtn').setAttribute('aria-label', 'Buka menu');
+    }
+
+    byId('menuBtn').addEventListener('click', () => {
+      const open = byId('sidebar').classList.toggle('open');
+      byId('menuBtn').setAttribute('aria-expanded', String(open));
+      byId('menuBtn').setAttribute('aria-label', open ? 'Tutup menu' : 'Buka menu');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && byId('sidebar').classList.contains('open')) {
+        closeMenu();
+        byId('menuBtn').focus();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!byId('sidebar').contains(event.target) && !byId('menuBtn').contains(event.target)) {
+        closeMenu();
+      }
+    });
+
+    byId('logoutBtn').addEventListener('click', async () => {
+      const button = byId('logoutBtn');
+      button.disabled = true;
+      button.textContent = 'Keluar…';
+      showMessage('pageError', '');
+
+      try {
+        await api('/api/logout', { method: 'POST' });
+        goToLogin();
+      } catch (error) {
+        if (!redirecting) {
+          showMessage('pageError', error.message);
+          button.disabled = false;
+          button.textContent = 'Keluar';
+        }
+      }
+    });
+
+    async function init() {
+      try {
+        const data = await api('/api/me');
+        if (!data || !data.user || !roleNames.has(data.user.role)) {
+          throw new Error('Data pengguna belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.');
+        }
+
+        const user = data.user;
+        if (user.must_change_password === true) {
+          goToLogin();
+          return;
+        }
+
+        isAdmin = user.role === 'admin';
+        const scope = isAdmin ? 'Admin · akses penuh' : roleNames.get(user.role);
+
+        byId('userName').textContent = user.email;
+        byId('userRole').textContent = scope;
+        byId('scopeBadge').textContent = scope;
+        byId('accountLink').hidden = !isAdmin;
+        byId('accountContent').hidden = !isAdmin;
+        byId('accessDenied').hidden = isAdmin;
+        byId('bootMessage').hidden = true;
+        byId('appView').style.display = 'block';
+
+        if (!isAdmin) return;
+
+        try {
+          await loadWilayah();
+        } catch (error) {
+          if (!redirecting) showMessage('formError', error.message);
+        }
+
+        if (!redirecting) await loadUsers();
+      } catch (error) {
+        if (!redirecting) {
+          byId('bootMessage').textContent = error.message;
+          byId('bootMessage').setAttribute('role', 'alert');
+        }
+      }
+    }
+
+    init();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

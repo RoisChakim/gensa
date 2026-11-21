@@ -249,7 +249,10 @@ async function main() {
     const sw = await request('GET', '/sw.js');
     assert.equal(sw.response.status, 200);
     assert.match(sw.response.headers.get('content-type') || '', /javascript/i);
-    assert.match(sw.text, /gensa-v1/);
+    assert.match(sw.text, /gensa-v2/);
+    assert.match(sw.text, /\/dashboard\.html/);
+    assert.match(sw.text, /\/generus\.html/);
+    assert.match(sw.text, /\/akun\.html/);
     assert.match(sw.text, /addEventListener\('install'/);
     assert.match(sw.text, /addEventListener\('fetch'/);
     assert.match(sw.text, /\/api\//);

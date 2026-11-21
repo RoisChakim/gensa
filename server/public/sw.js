@@ -1,7 +1,10 @@
-const CACHE_NAME = 'gensa-v1';
+const CACHE_NAME = 'gensa-v2';
 const CORE = [
   '/',
   '/login.html',
+  '/dashboard.html',
+  '/generus.html',
+  '/akun.html',
   '/jadwal.html',
   '/cetak-qr.html',
   '/laporan.html',

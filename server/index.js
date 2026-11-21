@@ -68,7 +68,10 @@ const STATUSES = new Set(['pending', 'approved', 'rejected', 'delete_pending']);
 const JENJANG = new Set(['caberawit', 'pra_remaja', 'remaja', 'usia_nikah']);
 const STATUS_ABSENSI = new Set(['hadir', 'izin', 'sakit', 'alfa']);
 const TINGKAT_PERTEMUAN = new Set(['kelompok', 'desa', 'daerah']);
+const JENIS_KELAMIN = new Set(['laki-laki', 'perempuan']);
 const loginFailures = new Map();
+// Percobaan POST /api/izin per IP (R2): maks 10 per menit.
+const izinAttempts = new Map();
 
 if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
   throw new Error('PORT tidak valid.');
@@ -351,6 +354,40 @@ function recordLoginFailure(email) {
     loginFailures.set(email, entry);
   }
   entry.count += 1;
+}
+
+// IP klien untuk rate limit izin publik. Di belakang proxy tepercaya
+// (TRUST_PROXY=1) pakai entri pertama x-forwarded-for.
+function clientIp(req) {
+  if (TRUST_PROXY) {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (typeof forwarded === 'string' && forwarded.trim() !== '') {
+      return forwarded.split(',')[0].trim();
+    }
+  }
+  return req.socket.remoteAddress || 'unknown';
+}
+
+// R2: batasi POST /api/izin publik — maks 10 percobaan per menit per IP,
+// supaya kode 6 karakter tidak bisa ditebak berulang (brute force).
+function checkIzinRateLimit(req) {
+  const now = Date.now();
+  const ip = clientIp(req);
+
+  for (const [key, entry] of izinAttempts) {
+    if (entry.expiresAt <= now) izinAttempts.delete(key);
+  }
+
+  let entry = izinAttempts.get(ip);
+  if (!entry) {
+    entry = { count: 0, expiresAt: now + 60 * 1000 };
+    izinAttempts.set(ip, entry);
+  }
+
+  entry.count += 1;
+  if (entry.count > 10) {
+    fail(429, 'Terlalu banyak percobaan. Coba lagi nanti.');
+  }
 }
 
 async function login(req, res) {
@@ -705,24 +742,34 @@ async function createGenerus(req, res, auth) {
   const tanggalLahir = validDate(body.tanggal_lahir);
   const kelas = requiredString(body.kelas_sekolah, 'Kelas sekolah', 100);
   const tingkat = requiredString(body.tingkat, 'Tingkat', 20);
+  // jenis_kelamin opsional di API (baris lama + klien lama tidak
+  // mengirimnya); form pengajuan baru mewajibkannya. Nilai yang
+  // dikirim harus salah satu dari enum.
+  const jenisKelamin =
+    body.jenis_kelamin === undefined || body.jenis_kelamin === null
+      ? null
+      : requiredString(body.jenis_kelamin, 'Jenis kelamin', 20);
   const ortuNama = requiredString(body.ortu_nama, 'Nama orang tua', 200);
   const ortuHubungan = requiredString(body.ortu_hubungan, 'Hubungan orang tua', 100);
   const ortuHp = requiredString(body.ortu_hp, 'Nomor HP orang tua', 30);
 
   if (!TINGKAT.has(tingkat)) fail(400, 'Tingkat tidak valid.');
+  if (jenisKelamin !== null && !JENIS_KELAMIN.has(jenisKelamin)) {
+    fail(400, 'Jenis kelamin tidak valid.');
+  }
   if (!/^[+0-9 ()-]+$/.test(ortuHp)) fail(400, 'Nomor HP tidak valid.');
 
   const result = await db.query(
     `INSERT INTO generus
        (kelompok_id, nama, tanggal_lahir, kelas_sekolah, tingkat,
-        ortu_nama, ortu_hubungan, ortu_hp, status, requested_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', $9)
+        jenis_kelamin, ortu_nama, ortu_hubungan, ortu_hp, status, requested_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', $10)
      RETURNING id, kelompok_id, nama, tanggal_lahir, kelas_sekolah,
-               tingkat, jenjang, ortu_nama, ortu_hubungan, ortu_hp,
+               tingkat, jenjang, jenis_kelamin, ortu_nama, ortu_hubungan, ortu_hp,
                status, requested_by, created_at, updated_at`,
     [
       auth.user.kelompok_id, nama, tanggalLahir, kelas, tingkat,
-      ortuNama, ortuHubungan, ortuHp, auth.user.id,
+      jenisKelamin, ortuNama, ortuHubungan, ortuHp, auth.user.id,
     ]
   );
 
@@ -737,12 +784,14 @@ async function listGenerus(res, auth, url) {
 
   const result = await db.query(
     `SELECT g.id, g.kelompok_id, g.nama, g.tanggal_lahir, g.kelas_sekolah,
-            g.tingkat, g.jenjang, g.ortu_nama, g.ortu_hubungan, g.ortu_hp,
+            g.tingkat, g.jenjang, g.jenis_kelamin, g.ortu_nama, g.ortu_hubungan, g.ortu_hp,
             g.status, g.alasan_penolakan, g.alasan_penghapusan,
             g.requested_by, g.decided_by, g.decided_at, g.qr_token,
-            g.kode_manual, g.created_at, g.updated_at
+            g.kode_manual, g.created_at, g.updated_at,
+            k.nama AS kelompok_nama, d.nama AS desa_nama
      FROM generus g
      JOIN kelompok k ON k.id = g.kelompok_id
+     JOIN desa d ON d.id = k.desa_id
      WHERE ($1::text IS NULL OR g.status::text = $1)
        AND (
          $2::text IN ('admin', 'daerah')
@@ -769,7 +818,7 @@ async function approveGenerus(res, auth, id) {
          SET status = 'approved', qr_token = $1, kode_manual = $2,
              decided_by = $3, decided_at = now(), updated_at = now()
          WHERE id = $4 AND status = 'pending'
-         RETURNING id, kelompok_id, nama, status, qr_token, kode_manual,
+         RETURNING id, kelompok_id, nama, status, jenis_kelamin, qr_token, kode_manual,
                    decided_by, decided_at, updated_at`,
         [qrToken, kodeManual, auth.user.id, id]
       );
@@ -810,16 +859,24 @@ async function rejectGenerus(req, res, auth, id) {
 }
 
 async function requestDelete(req, res, auth, id) {
-  requireRole(auth.user, 'kelompok');
+  // D1: Desa boleh mengajukan hapus generus di desanya (dulu hanya Kelompok).
+  if (auth.user.role !== 'kelompok' && auth.user.role !== 'desa') {
+    fail(403, 'Anda tidak memiliki akses.');
+  }
   const body = await readJson(req);
   const alasan = requiredString(body.alasan, 'Alasan', 2000);
 
   const result = await db.query(
-    `UPDATE generus
+    `UPDATE generus g
      SET status = 'delete_pending', alasan_penghapusan = $1, updated_at = now()
-     WHERE id = $2 AND kelompok_id = $3 AND status = 'approved'
-     RETURNING id, status, alasan_penghapusan, updated_at`,
-    [alasan, id, auth.user.kelompok_id]
+     FROM kelompok k
+     WHERE g.id = $2 AND g.kelompok_id = k.id AND g.status = 'approved'
+       AND (
+         ($3::text = 'kelompok' AND g.kelompok_id = $4)
+         OR ($3::text = 'desa' AND k.desa_id = $5)
+       )
+     RETURNING g.id, g.status, g.alasan_penghapusan, g.updated_at`,
+    [alasan, id, auth.user.role, auth.user.kelompok_id, auth.user.desa_id]
   );
 
   if (result.rowCount !== 1) {
@@ -831,14 +888,37 @@ async function requestDelete(req, res, auth, id) {
 async function approveDelete(res, auth, id) {
   requireRole(auth.user, 'admin');
 
-  const result = await db.query(
-    "DELETE FROM generus WHERE id = $1 AND status = 'delete_pending' RETURNING id",
-    [id]
-  );
+  // R8: hapus riwayat anak dulu dalam satu transaksi, baru generusnya —
+  // absensi/penilaian/izin/sync_items punya FK ke generus(id) TANPA
+  // ON DELETE CASCADE, jadi DELETE langsung selalu gagal FK (23503)
+  // untuk generus yang punya riwayat. PRD §6: riwayat ikut hilang.
+  const client = await db.getClient();
+  try {
+    await client.query('BEGIN');
 
-  if (result.rowCount !== 1) {
-    fail(409, 'Pengajuan penghapusan tidak ditemukan.');
+    const terkunci = await client.query(
+      "SELECT id FROM generus WHERE id = $1 AND status = 'delete_pending' FOR UPDATE",
+      [id]
+    );
+
+    if (terkunci.rowCount !== 1) {
+      fail(409, 'Pengajuan penghapusan tidak ditemukan.');
+    }
+
+    await client.query('DELETE FROM sync_items WHERE generus_id = $1', [id]);
+    await client.query('DELETE FROM izin WHERE generus_id = $1', [id]);
+    await client.query('DELETE FROM penilaian WHERE generus_id = $1', [id]);
+    await client.query('DELETE FROM absensi WHERE generus_id = $1', [id]);
+    await client.query('DELETE FROM generus WHERE id = $1', [id]);
+
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
   }
+
   sendJson(res, 200, { ok: true });
 }
 
@@ -861,6 +941,138 @@ async function rejectDelete(req, res, auth, id) {
     fail(409, 'Pengajuan penghapusan tidak ditemukan.');
   }
   sendJson(res, 200, { generus: result.rows[0] });
+}
+
+// PRD §5: pengajuan yang ditolak Admin (alasan = data belum lengkap)
+// bisa diperbaiki Kelompok lalu diajukan ulang — status kembali pending.
+async function ajukanUlangGenerus(req, res, auth, id) {
+  requireRole(auth.user, 'kelompok');
+  const body = await readJson(req);
+
+  const nama = requiredString(body.nama, 'Nama', 200);
+  const tanggalLahir = validDate(body.tanggal_lahir);
+  const kelas = requiredString(body.kelas_sekolah, 'Kelas sekolah', 100);
+  const tingkat = requiredString(body.tingkat, 'Tingkat', 20);
+  const jenisKelamin =
+    body.jenis_kelamin === undefined || body.jenis_kelamin === null
+      ? null
+      : requiredString(body.jenis_kelamin, 'Jenis kelamin', 20);
+  const ortuNama = requiredString(body.ortu_nama, 'Nama orang tua', 200);
+  const ortuHubungan = requiredString(body.ortu_hubungan, 'Hubungan orang tua', 100);
+  const ortuHp = requiredString(body.ortu_hp, 'Nomor HP orang tua', 30);
+
+  if (!TINGKAT.has(tingkat)) fail(400, 'Tingkat tidak valid.');
+  if (jenisKelamin !== null && !JENIS_KELAMIN.has(jenisKelamin)) {
+    fail(400, 'Jenis kelamin tidak valid.');
+  }
+  if (!/^[+0-9 ()-]+$/.test(ortuHp)) fail(400, 'Nomor HP tidak valid.');
+
+  const result = await db.query(
+    `UPDATE generus
+     SET nama = $1, tanggal_lahir = $2, kelas_sekolah = $3, tingkat = $4,
+         jenis_kelamin = $5, ortu_nama = $6, ortu_hubungan = $7, ortu_hp = $8,
+         status = 'pending', alasan_penolakan = NULL, decided_by = NULL,
+         decided_at = NULL, updated_at = now()
+     WHERE id = $9 AND kelompok_id = $10 AND status = 'rejected'
+     RETURNING id, kelompok_id, nama, tanggal_lahir, kelas_sekolah,
+               tingkat, jenjang, jenis_kelamin, ortu_nama, ortu_hubungan, ortu_hp,
+               status, requested_by, created_at, updated_at`,
+    [
+      nama, tanggalLahir, kelas, tingkat, jenisKelamin,
+      ortuNama, ortuHubungan, ortuHp, id, auth.user.kelompok_id,
+    ]
+  );
+
+  if (result.rowCount !== 1) {
+    fail(409, 'Generus tidak ditemukan atau tidak berstatus ditolak.');
+  }
+  sendJson(res, 200, { generus: result.rows[0] });
+}
+
+// Daftar akun (M3, halaman Admin buat akun): tanpa password_hash.
+async function listUsers(res, auth) {
+  requireRole(auth.user, 'admin');
+
+  const result = await db.query(
+    `SELECT u.id, u.email, u.role, u.desa_id, u.kelompok_id,
+            u.must_change_password, u.active, u.created_at,
+            d.nama AS desa_nama, k.nama AS kelompok_nama
+     FROM users u
+     LEFT JOIN desa d ON d.id = u.desa_id
+     LEFT JOIN kelompok k ON k.id = u.kelompok_id
+     ORDER BY u.created_at DESC, u.id DESC`
+  );
+
+  sendJson(res, 200, { users: result.rows });
+}
+
+// Daftar wilayah untuk form buat akun (M3): semua desa + kelompok.
+async function listWilayah(res, auth) {
+  // Nama wilayah sesuai lingkup peran pemanggil: admin/daerah melihat
+  // semua, desa hanya desanya + kelompok di dalamnya, kelompok hanya
+  // kelompoknya sendiri (plus nama desanya untuk label).
+  const role = auth.user.role;
+
+  const desa = await db.query(
+    `SELECT id, daerah_id, nama FROM desa
+     WHERE ($1::text IN ('admin', 'daerah'))
+        OR ($1::text = 'desa' AND id = $2)
+        OR ($1::text = 'kelompok' AND id = (
+          SELECT desa_id FROM kelompok WHERE id = $3))
+     ORDER BY nama`,
+    [role, auth.user.desa_id, auth.user.kelompok_id]
+  );
+  const kelompok = await db.query(
+    `SELECT id, desa_id, nama FROM kelompok
+     WHERE ($1::text IN ('admin', 'daerah'))
+        OR ($1::text = 'desa' AND desa_id = $2)
+        OR ($1::text = 'kelompok' AND id = $3)
+     ORDER BY nama`,
+    [role, auth.user.desa_id, auth.user.kelompok_id]
+  );
+
+  sendJson(res, 200, { desa: desa.rows, kelompok: kelompok.rows });
+}
+
+// Ringkasan dashboard: hitungan sesuai lingkup peran pemanggil.
+async function ringkasan(res, auth) {
+  const generus = await db.query(
+    `SELECT
+       COUNT(*)::int AS total,
+       COUNT(*) FILTER (WHERE g.status = 'pending')::int AS pending,
+       COUNT(*) FILTER (WHERE g.status = 'delete_pending')::int AS delete_pending,
+       COUNT(*) FILTER (WHERE g.status = 'approved')::int AS approved
+     FROM generus g
+     JOIN kelompok k ON k.id = g.kelompok_id
+     WHERE ($1::text IN ('admin', 'daerah'))
+        OR ($1::text = 'desa' AND k.desa_id = $2)
+        OR ($1::text = 'kelompok' AND g.kelompok_id = $3)`,
+    [auth.user.role, auth.user.desa_id, auth.user.kelompok_id]
+  );
+
+  const scope = pertemuanScopeWhere(auth);
+
+  const pertemuan = await db.query(
+    `SELECT COUNT(*)::int AS total
+     FROM pertemuan p
+     WHERE p.selesai_pada IS NULL AND p.tanggal >= CURRENT_DATE
+       AND ${scope.sql}`,
+    scope.values
+  );
+
+  const izin = await db.query(
+    `SELECT COUNT(*)::int AS total
+     FROM izin z
+     JOIN pertemuan p ON p.id = z.pertemuan_id
+     WHERE z.status = 'menunggu' AND ${scope.sql}`,
+    scope.values
+  );
+
+  sendJson(res, 200, {
+    generus: generus.rows[0],
+    pertemuan_mendatang: pertemuan.rows[0].total,
+    izin_menunggu: izin.rows[0].total,
+  });
 }
 
 // pg mengembalikan kolom jenjang_generus[] sebagai string '{a,b}'
@@ -3002,6 +3214,9 @@ async function muatIzinPublik(req, res, url) {
 }
 
 async function kirimIzin(req, res, url) {
+  // R2: batasi percobaan dari satu IP sebelum membaca token/kode.
+  checkIzinRateLimit(req);
+
   const token = url.searchParams.get('t');
 
   if (typeof token !== 'string' || !/^[a-fA-F0-9]{32}$/.test(token)) {
@@ -3329,7 +3544,7 @@ async function callbackLoginGoogle(req, res, url) {
     );
 
     res.writeHead(302, {
-      Location: '/jadwal.html',
+      Location: '/dashboard.html',
       'Set-Cookie': sessionCookie(
         token,
         requestSecure(req)
@@ -3433,6 +3648,21 @@ async function handle(req, res) {
     return;
   }
 
+  if (req.method === 'GET' && pathname === '/api/users') {
+    await listUsers(res, auth);
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/wilayah') {
+    await listWilayah(res, auth);
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/ringkasan') {
+    await ringkasan(res, auth);
+    return;
+  }
+
   if (pathname === '/api/generus' && req.method === 'POST') {
     await createGenerus(req, res, auth);
     return;
@@ -3444,7 +3674,7 @@ async function handle(req, res) {
   }
 
   const match = pathname.match(
-    /^\/api\/generus\/([1-9]\d*)\/(approve|reject|delete-request|delete-approve|delete-reject)$/
+    /^\/api\/generus\/([1-9]\d*)\/(approve|reject|delete-request|delete-approve|delete-reject|ajukan-ulang)$/
   );
 
   if (req.method === 'POST' && match) {
@@ -3455,6 +3685,7 @@ async function handle(req, res) {
     if (match[2] === 'delete-request') await requestDelete(req, res, auth, id);
     if (match[2] === 'delete-approve') await approveDelete(res, auth, id);
     if (match[2] === 'delete-reject') await rejectDelete(req, res, auth, id);
+    if (match[2] === 'ajukan-ulang') await ajukanUlangGenerus(req, res, auth, id);
     return;
   }
 

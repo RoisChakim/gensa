@@ -172,12 +172,74 @@
       main { padding: 40px 24px 64px; }
       .dates { grid-template-columns: 1fr 1fr; }
     }
-  </style>
+  
+/* Shell navigasi v1 (Sesi 12d) — menu + tampilan sama seperti demo v1 */
+.app-layout{display:flex;min-height:100vh}
+.app-layout > main{flex:1;min-width:0;max-width:none;margin:0;padding:26px 30px 60px}
+.sidebar{width:248px;flex:0 0 248px;background:#FBF7EE;border-right:1px solid #E9DFCE;padding:20px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar .brand-row{padding:2px 8px 14px;border-bottom:1px solid #E9DFCE;margin-bottom:14px}
+.brand-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.brand-logo{width:34px;height:42px;border-radius:10px;flex:0 0 34px;overflow:hidden;background:none}
+.brand-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.brand-name{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:#2C2620}
+.brand-sub{font-size:12.5px;color:#7A6F61}
+.side-link{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#7A6F61;background:none;border:none;width:100%;text-align:left;font-size:14px;font-weight:600;text-decoration:none}
+.side-link .ic{font-size:17px;width:22px;text-align:center}
+.side-link:hover{background:rgba(124,154,110,.07);color:#2C2620}
+.side-link.active{background:rgba(124,154,110,.13);color:#5F7A57}
+.side-user{margin-top:auto;background:#FFFDF8;border:1px solid #E9DFCE;border-radius:12px;padding:12px}
+.side-user .nm{font-weight:700;font-size:13.5px;color:#2C2620}
+.side-user .rl{font-size:12px;color:#5F7A57}
+.side-user button{margin-top:9px;width:100%;background:none;border:1px solid #DCCFB6;color:#7A6F61;border-radius:8px;padding:7px;font-size:12.5px;font-weight:600}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;flex-wrap:wrap}
+.title-row{display:flex;align-items:center;gap:10px}
+.topbar h2{font-size:24px;font-weight:800;letter-spacing:-.02em;color:#2C2620}
+.topbar .sub{color:#7A6F61;font-size:13.5px;margin-top:3px}
+.scope-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(124,154,110,.09);border:1px solid rgba(124,154,110,.3);color:#5F7A57;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700}
+.menu-btn{display:none;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;background:#FFFFFF;border:1px solid #DCCFB6;color:#2C2620;font-size:18px}
+@media (max-width:860px){
+  .sidebar{position:fixed;z-index:40;transform:translateX(-100%);transition:transform .25s}
+  .sidebar.open{transform:none}
+  .app-layout > main{padding:20px 16px 50px}
+  .menu-btn{display:inline-flex !important}
+}
+</style>
 </head>
 <body>
-  <main>
-    <p class="brand">GENSA</p>
-    <h1>Laporan Kehadiran</h1>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="menu-btn" id="closeMenuBtn" type="button" aria-label="Tutup menu">×</button>
+      <div class="brand-row">
+        <div class="brand-logo"><img src="/icon-192.png" alt="Logo GENSA"></div>
+        <div><div class="brand-name" style="font-size:16px">GENSA</div><div class="brand-sub">Platform Manajemen Generus</div></div>
+      </div>
+      <a class="side-link" href="/dashboard.html"><span class="ic">▦</span> Dashboard</a>
+      <a class="side-link" href="/generus.html"><span class="ic">👥</span> Daftar Generus</a>
+      <a class="side-link" href="/materi.html"><span class="ic">📖</span> Materi</a>
+      <a class="side-link" href="/jadwal.html"><span class="ic">🗓</span> Jadwal Mengaji</a>
+      <a class="side-link" href="/izin-kelola.html"><span class="ic">✉️</span> Izin</a>
+      <a class="side-link active" href="/laporan.html"><span class="ic">💬</span> Laporan WhatsApp</a>
+      <a class="side-link" href="/cetak-qr.html"><span class="ic">▣</span> Cetak QR Code</a>
+      <a class="side-link" id="akunLink" href="/akun.html" hidden><span class="ic">⚙</span> Akun</a>
+      <div class="side-user">
+        <div class="nm" id="userName"></div>
+        <div class="rl" id="userRole"></div>
+        <button id="logoutBtn" type="button">Keluar</button>
+      </div>
+    </aside>
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="title-row">
+          <button class="menu-btn" id="menuBtn" type="button" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+          <h2 id="pageTitle">Laporan Kehadiran</h2>
+        </div>
+        <div class="sub" id="pageSub"></div>
+      </div>
+      <span class="scope-badge" id="scopeBadge"></span>
+    </div>
+
+    
 
     <form id="form-laporan" class="card">
       <div class="dates">
@@ -208,7 +270,7 @@
       </div>
     </form>
 
-    <p id="pesan" role="status" aria-live="polite"></p>
+    
 
     <div id="hasil" hidden>
       <p id="info"></p>
@@ -235,7 +297,8 @@
         ></div>
       </section>
     </div>
-  </main>
+    </main>
+</div>
 
   <script>
     'use strict';
@@ -502,5 +565,47 @@
     });
   }
 </script>
+
+<script>
+/* Navigasi sidebar v1 (Sesi 12d) — isi nama/peran, tombol keluar, menu HP. */
+(function () {
+  'use strict';
+  var sidebar = document.getElementById('sidebar');
+  var menuBtn = document.getElementById('menuBtn');
+  var akunLink = document.getElementById('akunLink');
+  var roleLabels = { admin: 'Admin \u00b7 akses penuh', daerah: 'Daerah \u00b7 lihat semua', desa: 'Desa', kelompok: 'Kelompok' };
+  function setMenu(open) {
+    if (!sidebar || !menuBtn) return;
+    sidebar.classList.toggle('open', !!open);
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  if (menuBtn) menuBtn.addEventListener('click', function () { setMenu(!sidebar.classList.contains('open')); });
+  var closeBtn = document.getElementById('closeMenuBtn');
+  if (closeBtn) closeBtn.addEventListener('click', function () { setMenu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
+  var logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.addEventListener('click', async function () {
+    logoutBtn.disabled = true;
+    try { await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
+    window.location.replace('/login.html');
+  });
+  fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' })
+    .then(function (r) {
+      if (r.status === 401) { window.location.replace('/login.html'); return null; }
+      return r.json();
+    })
+    .then(function (data) {
+      if (!data || !data.user) return;
+      var u = data.user;
+      var name = document.getElementById('userName'); if (name) name.textContent = u.email || '';
+      var label = roleLabels[u.role] || u.role || '';
+      var role = document.getElementById('userRole'); if (role) role.textContent = label;
+      var badge = document.getElementById('scopeBadge'); if (badge) badge.textContent = label;
+      if (u.role === 'admin' && akunLink) akunLink.hidden = false;
+    })
+    .catch(function () {});
+})();
+</script>
+
 </body>
 </html>

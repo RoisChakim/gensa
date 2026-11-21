@@ -4,8 +4,94 @@
 > sesi. Tujuannya: lanjut kerja tanpa baca ulang semua file (hemat token)
 > dan progres tidak hilang walau kena limit.
 
-## Status sekarang (2026-11-21 ~03:40 WIB)
+## Status sekarang (2026-11-21 ~10:00 WIB)
 
+- **SESI 12 BERJALAN (2026-11-21, atas perintah pemilik "semua harus jadi
+  hari ini" + "tampilannya hampir mirip yang v1 tapi sistemnya sesuai PRD"):
+  perbaikan temuan review S11.** Pemilik kecewa setelah coba di laptopnya:
+  habis login langsung ke halaman Jadwal, tidak ada dashboard, halaman
+  pengelolaan inti belum ada (cuma API). Urutan prioritas pemilik: (1) R8,
+  (2) dashboard, (3) halaman generus + persetujuan, (4) halaman buat akun,
+  (5) jenis kelamin, (6) Desa boleh ajukan hapus, (7) rate limit izin,
+  (8) navigasi konsisten. Tampilan + susunan menu HARUS sama seperti demo v1
+  (referensi: `~/workspace/simgenerus-clone/sistem-generus-standalone.html`,
+  ringkasan + CSS v1 di `docs/V1_REFERENCE.md`) — menu: Dashboard, Daftar
+  Generus, Materi, Jadwal Mengaji, Izin, Laporan WhatsApp, Cetak QR Code,
+  + Akun (tambahan baru, hanya Admin, setelah Cetak QR Code).
+  - Backend S12 SELESAI (dikerjakan Muse, tanpa Codex): migrasi
+    `server/migrations/007_jenis_kelamin.sql` (enum laki-laki/perempuan,
+    nullable); `approveDelete` ditulis ulang — hapus sync_items → izin →
+    penilaian → absensi → generus dalam satu transaksi (R8); `requestDelete`
+    bolehkan peran Desa (D1); `createGenerus` + `ajukanUlangGenerus` (baru,
+    PRD §5: ditolak → perbaiki → ajukan ulang) terima `jenis_kelamin`
+    (OPSIONAL di API supaya tes lama tidak rusak — form baru mewajibkannya);
+    rate limit POST /api/izin maks 10/menit/IP → 429 (R2); endpoint baru
+    GET /api/users, GET /api/wilayah (SUDAH diubah: boleh semua peran,
+    dibatasi lingkup — desa hanya desanya, kelompok hanya kelompoknya),
+    GET /api/ringkasan; `listGenerus` kini kembalikan juga `kelompok_nama`
+    + `desa_nama`; redirect login Google + login email → `/dashboard.html`;
+    `sw.js` cache `gensa-v2` + CORE tambah dashboard/generus/akun.
+    Smoke test baru `server/smoke-test-s12.js` (8 pemeriksaan) LULUS 8/8.
+  - Regresi penuh setelah S12: S1, S3, S4, S5, S6, S7, S8, S9, S10, S12
+    LULUS semua. Catatan: (a) tes S7 diperbarui — cache `gensa-v2` (dulu
+    `gensa-v1`) + assert dashboard/generus/akun di CORE; (b) S8 butuh server
+    dijalankan dengan GOOGLE_CLIENT_ID/SECRET (kalau tidak, /api/auth/google
+    503 bukan 302); (c) S10 gagal 9x bila dijalankan <60 detik setelah S12
+    — BUKAN regresi, tapi R2: S12 menghabiskan jatah 10 POST /api/izin per
+    menit per IP. Jalankan S12 PALING AKHIR, atau tunggu 60 detik sebelum S10.
+    (d) S2 re-run gagal 3 (caveat lama: generus approved lama menumpuk di
+    Kelompok Contoh B ikut tertandai alfa saat penutupan).
+  - Sesi 12a dashboard SELESAI: `server/public/dashboard.html` (Codex
+    gpt-6-astra, sesi BARU, prompt `PROMPT_S12_DASHBOARD.md`, ~3 menit,
+    18.348 token). Shell v1 (sidebar + topbar), kartu statistik dari
+    /api/ringkasan, Ringkasan Jenjang, Jadwal Terdekat, Pengajuan Menunggu
+    (Admin saja), Jalan Pintas. Ikon menu disamakan ke v1 oleh Muse
+    (👥📖🗓✉️💬). JS lolos `node --check`, halaman serve 200. Tanpa
+    innerHTML, tanpa localStorage.
+  - Sesi 12b halaman generus SELESAI: `server/public/generus.html` (Codex
+    gpt-6-astra, sesi BARU, prompt `PROMPT_S12_GENERUS.md`, ~6 menit).
+    Shell v1; filter cari/jenjang/Desa/Kelompok berjenjang; tabel v1 +
+    kolom JK + Status (Menunggu/Disetujui/Ditolak/Pengajuan Hapus);
+    form Tambah Generus (modal, kelompok saja, JK wajib); Setujui/Tolak
+    (Admin, tolak pakai catatan); Ajukan hapus (kelompok/desa);
+    Hapus/Batalkan hapus (Admin, M2 — status delete_pending tampil
+    "dalam proses pengajuan" + alasan); Perbaiki & ajukan ulang
+    (kelompok, generus ditolak). Ikon disamakan ke v1 oleh Muse.
+    JS lolos `node --check`, serve 200, tanpa innerHTML/localStorage.
+  - Sesi 12c halaman akun SELESAI: `server/public/akun.html` (Codex
+    gpt-6-astra, sesi BARU, prompt `PROMPT_S12_AKUN.md`, ~3 menit,
+    17.883 token). Shell v1; form buat akun (peran + Desa/Kelompok
+    sesuai peran, M3); password awal acak server ditampilkan sekali +
+    tombol Salin; daftar akun (peran/wilayah/status "Belum ganti
+    password"); bukan Admin → pesan "Halaman ini hanya untuk Admin."
+    Ikon disamakan ke v1 oleh Muse (ikon Akun ⚙ di ketiga halaman baru).
+    JS lolos `node --check`, serve 200, tanpa innerHTML/localStorage.
+  - Sesi 12d navigasi konsisten SELESAI (dikerjakan Muse, tanpa Codex):
+    6 halaman lama (jadwal, cetak-qr, materi, laporan, scan,
+    izin-kelola) dipasangi shell v1 yang sama — sidebar + topbar +
+    script nav (isi nama/peran dari /api/me, tombol Keluar, menu HP).
+    Judul h1 dipindah ke topbar (h2), subjudul ke .sub; isi halaman
+    tidak diubah. Backup asli di /tmp/gensa-nav-backup/ (hilang bila
+    VM diganti). Semua 9 halaman serve 200; semua script lolos
+    `node --check`; string yang dicek tes lama tetap ada.
+  - Smoke test baru `server/smoke-test-s13.js` (8 pemeriksaan) LULUS 8/8:
+    halaman baru + API-nya, menu sidebar v1 sama di SEMUA halaman
+    (urutan + tautan dicek lewat class side-link), halaman lama tetap
+    memuat kontennya, alur generus (ajukan→setujui→daftar),
+    alur akun (buat→daftar, tanpa password_hash), non-admin ditolak
+    /api/users (403), ringkasan sesuai peran.
+  - Regresi akhir Sesi 12 (2026-11-21 ~10:30 WIB): S1, S3, S4, S5, S6,
+    S7, S8, S9, S10, S12 (8/8), S13 (8/8) LULUS semua, tanpa regresi.
+    S2 re-run gagal 3 (caveat lama, lihat di atas).
+  - **SESI 12 TUNTAS.** Sisa yang masih terbuka dari review S11:
+    M4 (email reset — butuh SMTP), M5 (notifikasi hasil pengajuan),
+    M7–M11 (struktur kelas, riwayat kelas, tugas per kelas/tahun,
+    retensi 1 bulan, deploy), D2/D3/D9, R1/R3–R7/R9–R24. Deploy Vercel
+    masih butuh 2 hal dari pemilik (akun Neon + akses Vercel).
+  - Server tes DIMATIKAN setelah tes Sesi 12 (sesuai aturan).
+  - Referensi tampilan v1: `docs/V1_REFERENCE.md` (CSS + shell + menu).
+    Prompt Codex Sesi 12 (`PROMPT_S12_*.md`) hanya berkas kerja lokal,
+    sudah di-.gitignore, JANGAN push.
 - Demo v1 selesai (2026-11-15). File utama:
   `sistem-generus-standalone.html` (= `GENSA_Demo_v1.html`).
 - Repo GitHub publik: `RoisChakim/gensa` (commit `c8cb40a0`).
@@ -681,21 +767,15 @@ dibuat Admin dan pendaftaran khusus per peran.
   lalu verifikasi login. Login Google dilewati dulu untuk uji coba.
   File ini BELUM di-push ke GitHub (push terakhir commit `827f74fb`).
 - Sesi 11 review Codex SELESAI (2026-11-21 ~09:45 WIB) — daftar
-  ada di STATE.md bagian "Status sekarang". LANGKAH BERIKUT
-  (butuh keputusan pemilik dulu, JANGAN langsung perbaiki):
-  prioritas Codex + verifikasi Muse: (1) perbaiki
-  `approveDelete` (R8 — hapus riwayat anak dulu dalam
-  transaksi, kalau tidak hapus generus ber-riwayat gagal FK);
-  (2) lengkapi alur MVP lewat UI — halaman generus
-  (daftar/ajukan/setuju-tolak), halaman hapus + "dalam proses
-  pengajuan", halaman Admin buat akun (M1–M3); (3) tambah
-  kolom jenis kelamin (M6) + endpoint edit/ajukan-ulang
-  generus (R6); (4) izinkan Desa ajukan hapus (D1); (5) rate
-  limit untuk POST /api/izin publik (R2). Baru setelah itu:
-  struktur kelas/PAUD–SD + riwayat kelas (M7–M8), retensi
-  1 bulan (M10), kirim email reset (M4, butuh SMTP), deploy.
+  ada di STATE.md bagian "Yang sedang dikerjakan". Perbaikan temuan
+  review SUDAH DIPERINTAHKAN pemilik 2026-11-21 ~09:30 WIB ("semua
+  harus jadi hari ini") — lihat "Status sekarang" (Sesi 12).
+  Setelah Sesi 12 tuntas, baru: struktur kelas/PAUD–SD + riwayat
+  kelas (M7–M8), retensi 1 bulan (M10), kirim email reset (M4, butuh
+  SMTP), deploy.
 - Jangan push ke GitHub dari VM — repo `RoisChakim/gensa` di-push
   pemilik sendiri (konektor GitHub ditolak 403 saat membuat repo).
+  Subagent Sesi 12 JUGA dilarang push — parent yang push.
 - Aturan dari pemilik: SETIAP sebelum prompt ke Codex, kabari
   pemilik dulu. Sesi 1 ini dijalankan atas jadwal yang pemilik
   buat sendiri (limit kembali ~23:56 WIB).
